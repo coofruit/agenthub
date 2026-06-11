@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 / 注册 · 高领智能体中心</title>
+  <script src="assets/app-base.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/legal-docs.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --c: #02BBC7;
+      --cd: #018a93;
+      --cl: #e0f9fb;
+      --text: #1a2332;
+      --sub: #8a9aaa;
+      --bord: #e8ecef;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .login-page {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── 左侧品牌区（参考原系统大图 + 水印字） ── */
+    .login-visual {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(118deg, rgba(255,255,255,0.88) 0%, rgba(224,249,251,0.72) 42%, rgba(255,255,255,0.92) 100%),
+        radial-gradient(ellipse 80% 60% at 30% 50%, rgba(2,187,199,0.18) 0%, transparent 70%),
+        linear-gradient(160deg, #f8fcfd 0%, #eef9fa 50%, #f5fbfb 100%);
+    }
+    .login-visual::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 75% 35%, rgba(2,187,199,0.08) 0%, transparent 45%),
+        radial-gradient(circle at 20% 80%, rgba(2,187,199,0.06) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .visual-watermark {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(3.5rem, 9vw, 7rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: rgba(2, 187, 199, 0.22);
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: none;
+    }
+    .visual-icon {
+      position: absolute;
+      right: 8%;
+      bottom: 10%;
+      width: min(280px, 35vw);
+      height: min(280px, 35vw);
+      opacity: 0.12;
+      color: var(--c);
+    }
+
+    /* ── 右侧登录面板 ── */
+    .login-panel {
+      width: 580px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 64px 32px;
+      background: #fff;
+      box-shadow: -4px 0 24px rgba(15, 25, 35, 0.04);
+    }
+    .panel-inner {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .brand-logo {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 14px;
+      display: block;
+      border-radius: 10px;
+    }
+    .brand-en {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--c);
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+    .brand-cn {
+      font-size: 15px;
+      color: var(--c);
+      letter-spacing: 0.12em;
+      opacity: 0.85;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 28px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--bord);
+    }
+    .tab {
+      padding: 0 2px 12px;
+      border: none;
+      background: none;
+      font-size: 15px;
+      color: var(--sub);
+      cursor: pointer;
+      font-weight: 500;
+      position: relative;
+    }
+    .tab.active {
+      color: var(--c);
+      font-weight: 600;
+    }
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--c);
+      border-radius: 2px 2px 0 0;
+    }
+
+    .field {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .field-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: #b0bec5;
+      pointer-events: none;
+    }
+    .field input {
+      width: 100%;
+      height: 46px;
+      padding: 0 42px 0 44px;
+      border: 1px solid var(--bord);
+      border-radius: 8px;
+      font-size: 15px;
+      color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--c);
+      box-shadow: 0 0 0 3px rgba(2, 187, 199, 0.12);
+    }
+    .field input::placeholder { color: #c5cdd3; }
+    .toggle-pwd {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 4px;
+      color: #b0bec5;
+      display: flex;
+      align-items: center;
+    }
+    .toggle-pwd:hover { color: var(--c); }
+    .toggle-pwd svg { width: 18px; height: 18px; }
+
+    .agree {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 20px 0 24px;
+      font-size: 12px;
+      color: var(--sub);
+      line-height: 1.6;
+    }
+    .agree input {
+      margin-top: 3px;
+      accent-color: var(--c);
+      flex-shrink: 0;
+    }
+    .agree a {
+      color: var(--c);
+      text-decoration: none;
+    }
+    .agree a:hover { text-decoration: underline; }
+
+    .btn-submit {
+      width: 100%;
+      height: 46px;
+      border: none;
+      border-radius: 8px;
+      background: var(--c);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover:not(:disabled) { background: var(--cd); }
+    .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .msg {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #e74c3c;
+      min-height: 18px;
+      text-align: center;
+    }
+    .back-link {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--c);
+      text-decoration: none;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    .panel-footer {
+      margin-top: auto;
+      padding-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: #b0bec5;
+      line-height: 1.8;
+    }
+
+    /* ── 协议弹窗 ── */
+    .legal-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(15, 25, 35, 0.45);
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .legal-modal.open { display: flex; }
+    .legal-dialog {
+      width: min(720px, 100%);
+      max-height: min(82vh, 800px);
+      background: #fff;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+    }
+    .legal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--bord);
+      flex-shrink: 0;
+    }
+    .legal-header h3 {
+      font-size: 17px;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .legal-close {
+      border: none;
+      background: none;
+      font-size: 24px;
+      line-height: 1;
+      color: var(--sub);
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+    .legal-close:hover { color: var(--c); }
+    .legal-body {
+      padding: 20px 24px 28px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.85;
+      color: #3a4a5a;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    @media (max-width: 960px) {
+      .login-visual { display: none; }
+      .login-panel {
+        width: 100%;
+        box-shadow: none;
+        padding: 40px 24px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <aside class="login-visual" aria-hidden="true">
+      <div class="visual-watermark">Goalin Legal</div>
+      <svg class="visual-icon" viewBox="0 0 120 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60 8L72 36H96L78 54L84 84L60 68L36 84L42 54L24 36H48L60 8Z" opacity="0.5"/>
+        <circle cx="60" cy="96" r="14" opacity="0.35"/>
+      </svg>
+    </aside>
+
+    <section class="login-panel">
+      <div class="panel-inner">
+        <div class="brand">
+          <img class="brand-logo" src="assets/goalin-logo.png" alt="Goalin Legal" />
+          <div class="brand-en">Goalin Legal</div>
+          <div class="brand-cn">高领法律</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" id="tabLogin" type="button">账号登录</button>
+          <button class="tab" id="tabRegister" type="button">账号注册</button>
+        </div>
+
+        <form id="form">
+          <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            <input id="username" name="username" placeholder="请输入用户名" autocomplete="username" required minlength="3" maxlength="32" />
+          </div>
+          <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input id="password" name="password" type="password" placeholder="请输入密码" autocomplete="current-password" required minlength="6" />
+            <button class="toggle-pwd" id="togglePwd" type="button" aria-label="显示密码">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+
+          <label class="agree">
+            <input type="checkbox" id="agree" checked />
+            <span>我已阅读并同意 <a href="#" id="linkTerms">《用户服务协议》</a> 和 <a href="#" id="linkPrivacy">《隐私政策》</a></span>
+          </label>
+
+          <button class="btn-submit" id="submitBtn" type="submit">登录</button>
+          <div class="msg" id="msg"></div>
+        </form>
+
+        <a class="back-link" id="backLink" href="index.html">← 返回智能体中心</a>
+      </div>
+
+      <footer class="panel-footer">
+        <div>高领智能体中心</div>
+        <div>v 1.0.0</div>
+        <div>闽ICP备2021011252号-1</div>
+      </footer>
+    </section>
+  </div>
+
+  <div class="legal-modal" id="legalModal" role="dialog" aria-modal="true">
+    <div class="legal-dialog">
+      <div class="legal-header">
+        <h3 id="legalTitle">用户服务协议</h3>
+        <button class="legal-close" id="legalClose" type="button" aria-label="关闭">&times;</button>
+      </div>
+      <div class="legal-body" id="legalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const base = getAppBasePath();
+    const homeUrl = base + '/index.html';
+    const params = new URLSearchParams(location.search);
+    const returnUrl = params.get('return') || homeUrl;
+    document.getElementById('backLink').href = returnUrl.startsWith('/') ? returnUrl : homeUrl;
+
+    let mode = 'login';
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const submitBtn = document.getElementById('submitBtn');
+    const msg = document.getElementById('msg');
+    const form = document.getElementById('form');
+    const pwdInput = document.getElementById('password');
+    const agreeBox = document.getElementById('agree');
+
+    function setMode(m) {
+      mode = m;
+      tabLogin.classList.toggle('active', m === 'login');
+      tabRegister.classList.toggle('active', m === 'register');
+      submitBtn.textContent = m === 'login' ? '登录' : '注册并登录';
+      pwdInput.autocomplete = m === 'login' ? 'current-password' : 'new-password';
+    }
+    tabLogin.onclick = () => setMode('login');
+    tabRegister.onclick = () => setMode('register');
+
+    document.getElementById('togglePwd').onclick = () => {
+      const isPwd = pwdInput.type === 'password';
+      pwdInput.type = isPwd ? 'text' : 'password';
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      if (!agreeBox.checked) {
+        msg.textContent = '请先阅读并同意用户服务协议与隐私政策';
+        return;
+      }
+      submitBtn.disabled = true;
+      const username = document.getElementById('username').value.trim();
+      const password = pwdInput.value;
+      try {
+        if (mode === 'login') await GoalinAuth.login(username, password);
+        else await GoalinAuth.register(username, password);
+        location.href = returnUrl.startsWith('/') ? returnUrl : homeUrl;
+      } catch (err) {
+        msg.textContent = err.message || '操作失败';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    GoalinAuth.fetchMe().then(u => {
+      if (u) location.href = returnUrl.startsWith('/') ? returnUrl : homeUrl;
+    });
+
+    const legalModal = document.getElementById('legalModal');
+    const legalTitle = document.getElementById('legalTitle');
+    const legalBody = document.getElementById('legalBody');
+
+    function openLegal(type) {
+      const docs = window.GoalinLegalDocs || {};
+      legalTitle.textContent = type === 'privacy' ? docs.privacyTitle : docs.termsTitle;
+      legalBody.textContent = type === 'privacy' ? docs.privacy : docs.terms;
+      legalModal.classList.add('open');
+      legalBody.scrollTop = 0;
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLegal() {
+      legalModal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('linkTerms').addEventListener('click', (e) => {
+      e.preventDefault();
+      openLegal('terms');
+    });
+    document.getElementById('linkPrivacy').addEventListener('click', (e) => {
+      e.preventDefault();
+      openLegal('privacy');
+    });
+    document.getElementById('legalClose').onclick = closeLegal;
+    legalModal.addEventListener('click', (e) => {
+      if (e.target === legalModal) closeLegal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && legalModal.classList.contains('open')) closeLegal();
+    });
+  </script>
+</body>
+</html>

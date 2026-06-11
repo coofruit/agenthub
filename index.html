@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高领智能体中心 · Goalin Legal AI Agent Hub</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="assets/app-base.js"></script>
+  <script src="assets/auth.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --c:    #02BBC7;
+      --cd:   #018a93;
+      --cl:   #e0f9fb;
+      --navy: #0f1923;
+      --bg:   #f4f6f8;
+      --white:#ffffff;
+      --text: #1a2332;
+      --sub:  #5a6a7a;
+      --bord: #e2e8ed;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ══════════════════════════
+       顶部导航栏
+    ══════════════════════════ */
+    nav {
+      position: sticky; top: 0; z-index: 200;
+      background: var(--navy);
+      height: 72px;
+      display: flex; align-items: center;
+      padding: 0 40px;
+      gap: 30px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 11px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .nav-logo-img {
+      height: 44px;
+      width: auto;
+      display: block;
+      flex-shrink: 0;
+      border-radius: 8px;
+    }
+    .nav-logo-text {
+      font-size: 16px; font-weight: 700; color: var(--c);
+      letter-spacing: 0.02em;
+    }
+    .nav-logo-sub {
+      font-size: 13px; color: rgba(2,187,199,0.55);
+      letter-spacing: 0.06em; margin-left: 2px;
+    }
+    .nav-divider { width:1px; height:22px; background:rgba(255,255,255,0.12); }
+    .nav-links {
+      display: flex; gap: 6px; flex: 1;
+    }
+    .nav-link {
+      font-size: 15px; color: rgba(2,187,199,0.50);
+      text-decoration: none; padding: 8px 16px; border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-link:hover { color: var(--c); background: rgba(2,187,199,0.08); }
+    .nav-link.active { color: var(--c); }
+    .nav-right { display:flex; align-items:center; gap:12px; margin-left:auto; }
+    .nav-btn {
+      font-size: 14px; padding: 9px 22px; border-radius: 8px;
+      border: none; cursor: pointer; font-weight: 600; letter-spacing: 0.02em;
+      transition: all 0.2s;
+    }
+    .nav-btn-ghost {
+      background: transparent; color: rgba(2,187,199,0.70);
+      border: 1px solid rgba(2,187,199,0.25);
+    }
+    .nav-btn-ghost:hover { color: var(--c); border-color: rgba(2,187,199,0.55); }
+    .nav-btn-primary {
+      background: var(--c); color: #fff;
+      box-shadow: 0 0 16px rgba(2,187,199,0.35);
+    }
+    .nav-btn-primary:hover { background: var(--cd); }
+
+    /* ══════════════════════════
+       Hero 区域
+    ══════════════════════════ */
+    .hero {
+      background: var(--navy);
+      min-height: clamp(340px, 42vh, 520px);
+      padding: clamp(72px, 8vh, 100px) 32px clamp(84px, 9vh, 112px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero-inner {
+      width: 100%;
+      max-width: 720px;
+      position: relative;
+    }
+    /* 光晕 */
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 80% at 50% 120%, rgba(2,187,199,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 50% at 15% 40%,  rgba(2,187,199,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 50% at 85% 40%,  rgba(2,187,199,0.07) 0%, transparent 60%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(2,187,199,0.12);
+      border: 1px solid rgba(2,187,199,0.25);
+      border-radius: 999px; padding: 6px 18px;
+      font-size: 13px; color: var(--c); letter-spacing: 0.10em;
+      text-transform: uppercase; margin-bottom: 28px;
+      position: relative;
+    }
+    .hero-badge-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--c); box-shadow: 0 0 8px var(--c);
+      animation: blink 2.5s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6.5vw, 4.25rem);
+      font-weight: 800; letter-spacing: -0.02em;
+      line-height: 1.12; margin-bottom: 20px; position: relative;
+      /* 全部使用主色流光渐变 */
+      background: linear-gradient(110deg, #ffffff 0%, var(--cl) 30%, var(--c) 55%, var(--cl) 78%, #ffffff 100%);
+      background-size: 220% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 7s linear infinite;
+    }
+    @keyframes shimmer { 0%{background-position:0%} 100%{background-position:220%} }
+    .hero h1 span { -webkit-text-fill-color: inherit; }
+    .hero-sub {
+      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+      color: rgba(2,187,199,0.60);
+      max-width: 560px; margin: 0 auto 44px; line-height: 1.75;
+      position: relative;
+    }
+
+    /* 搜索框 */
+    .hero-search {
+      max-width: 620px; margin: 0 auto; position: relative;
+    }
+    .hero-search input {
+      width: 100%; padding: 18px 24px 18px 54px;
+      border-radius: 12px;
+      border: 1px solid rgba(2,187,199,0.22);
+      background: rgba(255,255,255,0.06);
+      color: #fff; font-size: 1.08rem; outline: none;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .hero-search input::placeholder { color: rgba(255,255,255,0.28); }
+    .hero-search input:focus {
+      border-color: rgba(2,187,199,0.55);
+      box-shadow: 0 0 0 3px rgba(2,187,199,0.10), 0 0 24px rgba(2,187,199,0.10);
+      background: rgba(255,255,255,0.09);
+    }
+    .hero-search-icon {
+      position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+      width: 20px; height: 20px;
+      color: rgba(255,255,255,0.30); pointer-events: none;
+    }
+
+    /* ══════════════════════════
+       主内容
+    ══════════════════════════ */
+    .main {
+      max-width: min(1720px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 48px 20px 100px;
+    }
+
+    /* 分类标签 */
+    .section-title {
+      font-size: 0.88rem; font-weight: 700; color: var(--c);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .tabs {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .tab {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 26px; border-radius: 9px;
+      font-size: 1rem; font-weight: 500; cursor: pointer;
+      border: 1px solid var(--bord);
+      background: var(--white); color: var(--sub);
+      transition: all 0.2s;
+    }
+    .tab-icon {
+      font-size: 1.2em; line-height: 1;
+      display: inline-flex; align-items: center;
+    }
+    .tab:hover { border-color: var(--c); color: var(--c); }
+    .tab.active {
+      background: var(--c); color: #fff;
+      border-color: var(--c);
+      box-shadow: 0 2px 12px rgba(2,187,199,0.28);
+    }
+
+    /* 结果行 */
+    .result-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .result-count { font-size: 0.82rem; color: var(--sub); }
+    .result-count strong { color: var(--text); }
+
+    /* 卡片网格 — 大屏一行五列 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    /* 卡片 — 参考产品卡片布局 */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--bord);
+      border-radius: 16px;
+      padding: 32px 28px 28px;
+      text-decoration: none; color: inherit;
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+      min-width: 0;
+      height: 100%;
+      box-shadow: 0 4px 24px rgba(15, 25, 35, 0.06);
+      transition:
+        box-shadow 0.28s ease,
+        border-color 0.28s ease,
+        transform 0.28s ease,
+        opacity 0.5s ease,
+        translate 0.5s ease;
+      opacity: 0; translate: 0 20px;
+    }
+    .card.visible { opacity: 1; translate: 0 0; }
+    .card:nth-child(2) { transition-delay: 0.07s; }
+    .card:nth-child(3) { transition-delay: 0.14s; }
+    .card:nth-child(4) { transition-delay: 0.05s; }
+    .card:nth-child(5) { transition-delay: 0.10s; }
+
+    .card:hover {
+      border-color: rgba(2,187,199,0.45);
+      box-shadow: 0 12px 40px rgba(2,187,199,0.14), 0 4px 12px rgba(0,0,0,0.05);
+      transform: translateY(-4px);
+    }
+    .card.online {
+      border-color: rgba(2,187,199,0.35);
+      box-shadow: 0 8px 32px rgba(2,187,199,0.10), 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .card.online:hover {
+      border-color: var(--c);
+      box-shadow: 0 16px 48px rgba(2,187,199,0.18), 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .card-icon {
+      width: 56px; height: 56px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.65rem; flex-shrink: 0;
+      background: var(--cl);
+      border: 1px solid rgba(2,187,199,0.15);
+      margin-bottom: 16px;
+    }
+
+    .card-badge {
+      display: inline-block;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.10em;
+      text-transform: uppercase;
+      padding: 5px 14px; border-radius: 999px;
+      margin-bottom: 18px;
+    }
+    .card-badge.online {
+      background: var(--c); color: #fff;
+      box-shadow: 0 2px 10px rgba(2,187,199,0.30);
+    }
+    .card-badge.beta {
+      background: rgba(245,158,11,0.12); color: #b45309;
+      border: 1px solid rgba(245,158,11,0.28);
+    }
+
+    .card h3 {
+      font-size: 1.35rem; font-weight: 800;
+      color: var(--text); line-height: 1.25;
+      margin-bottom: 8px; letter-spacing: -0.01em;
+    }
+    .card-subtitle {
+      font-size: 0.88rem; font-weight: 600;
+      color: var(--c); margin-bottom: 16px;
+    }
+    .card-desc {
+      font-size: 0.86rem; color: var(--sub);
+      line-height: 1.75; margin-bottom: 22px;
+      width: 100%; max-width: 280px;
+    }
+
+    .card-features {
+      list-style: none; width: 100%;
+      max-width: 260px; margin: 0 auto 24px;
+      text-align: left;
+      flex: 1;
+    }
+    .card-features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.84rem; color: var(--sub); line-height: 1.55;
+      padding: 7px 0;
+    }
+    .card-features li + li {
+      border-top: 1px solid rgba(226,232,237,0.7);
+    }
+    .card-check {
+      flex-shrink: 0; margin-top: 2px;
+      width: 16px; height: 16px;
+      color: #10b981;
+    }
+
+    .card-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.88rem; font-weight: 700; color: var(--c);
+      margin-top: auto; padding-top: 4px;
+      transition: gap 0.22s ease, color 0.22s ease;
+    }
+    .card:hover .card-cta { gap: 10px; color: var(--cd); }
+    .card-cta svg { flex-shrink: 0; }
+
+    /* 保留 badge 类供其他区域复用 */
+    .badge {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 2px 9px; border-radius: 4px;
+    }
+    .badge-type {
+      background: rgba(2,187,199,0.10);
+      color: var(--cd); border: 1px solid rgba(2,187,199,0.22);
+    }
+    .badge-online {
+      background: rgba(16,185,129,0.10);
+      color: #0a9060; border: 1px solid rgba(16,185,129,0.25);
+    }
+    .badge-beta {
+      background: rgba(245,158,11,0.10);
+      color: #b45309; border: 1px solid rgba(245,158,11,0.25);
+    }
+
+    /* 空状态 */
+    .empty {
+      text-align: center; padding: 80px 0;
+      color: var(--sub); display: none;
+    }
+
+    /* 统计区 */
+    .stats {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: clamp(32px, 6vw, 56px);
+      margin: 56px 0 0; padding: 36px 0;
+      border-top: 1px solid var(--bord);
+      opacity: 0; translate: 0 16px;
+      transition: opacity 0.6s ease, translate 0.6s ease;
+    }
+    .stats.visible { opacity:1; translate:0 0; }
+    .stat-item { text-align: center; min-width: 88px; }
+    .stat-num {
+      font-size: 2rem; font-weight: 800; color: var(--c);
+      display: block; letter-spacing: -0.02em;
+    }
+    .stat-num.online {
+      color: #0a9060;
+      text-shadow: 0 0 20px rgba(16,185,129,0.18);
+    }
+    .stat-num.beta {
+      color: #b45309;
+      text-shadow: 0 0 20px rgba(245,158,11,0.15);
+    }
+    .stat-label {
+      font-size: 0.72rem; color: var(--sub);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-top: 6px;
+    }
+    .stat-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+      padding: 3px 10px; border-radius: 999px; margin-top: 8px;
+    }
+    .stat-badge.online {
+      color: #0a9060;
+      background: rgba(16,185,129,0.10);
+      border: 1px solid rgba(16,185,129,0.25);
+    }
+    .stat-badge.beta {
+      color: #b45309;
+      background: rgba(245,158,11,0.10);
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+    .stat-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .stat-badge.online .stat-badge-dot {
+      background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.6);
+    }
+    .stat-badge.beta .stat-badge-dot {
+      background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.6);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--navy);
+      padding: 24px 32px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-brand { font-size: 0.75rem; color: rgba(255,255,255,0.30); letter-spacing: 0.05em; }
+    .footer-copy  { font-size: 0.72rem; color: rgba(255,255,255,0.18); }
+
+    /* 进度条 */
+    #progress {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--cd), var(--c), #4fd8e0);
+      z-index: 999; transition: width 0.1s linear;
+      box-shadow: 0 0 8px var(--c);
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(2,187,199,0.25); border-radius: 3px; }
+
+    /* ── 二维码弹窗 ── */
+    .qr-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .qr-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .qr-modal {
+      background: var(--navy);
+      border: 1px solid rgba(2,187,199,0.22);
+      border-radius: 18px;
+      padding: 36px 32px 28px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(2,187,199,0.10);
+      transform: scale(0.92) translateY(12px);
+      transition: transform 0.28s cubic-bezier(.34,1.4,.64,1);
+      position: relative; min-width: 260px;
+    }
+    .qr-overlay.open .qr-modal { transform: scale(1) translateY(0); }
+
+    .qr-close {
+      position: absolute; top: 14px; right: 16px;
+      background: none; border: none; cursor: pointer;
+      color: rgba(2,187,199,0.45); font-size: 20px; line-height: 1;
+      transition: color 0.2s;
+    }
+    .qr-close:hover { color: var(--c); }
+
+    .qr-title {
+      font-size: 0.8rem; font-weight: 700; color: var(--c);
+      letter-spacing: 0.10em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .qr-canvas-wrap {
+      background: #fff; border-radius: 12px;
+      padding: 14px; display: inline-block;
+      box-shadow: 0 0 24px rgba(2,187,199,0.20);
+    }
+    .qr-canvas-wrap canvas { display: block; }
+    .qr-hint {
+      margin-top: 16px;
+      font-size: 0.75rem; color: rgba(2,187,199,0.45);
+      line-height: 1.6;
+    }
+
+    /* 分享按钮 */
+    .nav-qr-btn {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; padding: 9px 18px; border-radius: 8px;
+      border: 1px solid rgba(2,187,199,0.28);
+      background: transparent; color: rgba(2,187,199,0.70);
+      cursor: pointer; font-weight: 600; letter-spacing: 0.02em;
+      transition: all 0.2s;
+    }
+    .nav-qr-btn:hover {
+      border-color: var(--c); color: var(--c);
+      background: rgba(2,187,199,0.08);
+    }
+
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    /* ══════════════════════════
+       视图切换（首页 / 关于我们）
+    ══════════════════════════ */
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    .nav-link[data-view] { cursor: pointer; }
+
+    /* 关于我们 */
+    #viewAbout {
+      --about-content-max: min(1280px, calc(100vw - 28px));
+    }
+    @media (min-width: 1200px) {
+      #viewAbout { --about-content-max: min(1360px, calc(100vw - 48px)); }
+    }
+
+    .about-hero {
+      background: var(--navy);
+      padding: clamp(48px, 6vh, 72px) 16px clamp(40px, 5vh, 56px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .about-hero::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 60% 90% at 50% 110%, rgba(2,187,199,0.16) 0%, transparent 65%);
+    }
+    .about-hero-inner {
+      position: relative;
+      max-width: var(--about-content-max);
+      margin: 0 auto;
+      padding: 0 4px;
+    }
+    .about-hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+    .about-hero p {
+      font-size: 1.05rem;
+      color: rgba(2,187,199,0.65);
+      line-height: 1.7;
+    }
+    .about-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 28px;
+      padding: 10px 20px;
+      border-radius: 9px;
+      border: 1px solid rgba(2,187,199,0.28);
+      background: rgba(2,187,199,0.06);
+      color: var(--c);
+      font-size: 0.9rem; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .about-back:hover {
+      background: rgba(2,187,199,0.12);
+      border-color: rgba(2,187,199,0.5);
+    }
+
+    .about-main {
+      max-width: var(--about-content-max);
+      margin: 0 auto;
+      padding: 36px 12px 80px;
+    }
+    .about-highlights {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: -36px auto 36px;
+      position: relative;
+      z-index: 2;
+      max-width: var(--about-content-max);
+      padding: 0 12px;
+    }
+    .about-highlight {
+      background: var(--white);
+      border: 1px solid var(--bord);
+      border-radius: 14px;
+      padding: 20px 16px;
+      text-align: center;
+      box-shadow: 0 8px 28px rgba(15, 25, 35, 0.06);
+    }
+    .about-highlight-num {
+      font-size: 1.65rem; font-weight: 800; color: var(--c);
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .about-highlight-label {
+      font-size: 0.72rem; color: var(--sub);
+      margin-top: 6px; letter-spacing: 0.06em;
+    }
+
+    .about-section {
+      margin-bottom: 48px;
+    }
+    .about-section h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid rgba(2,187,199,0.25);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .about-section h2::before {
+      content: '';
+      width: 4px; height: 1.1em;
+      background: var(--c);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .about-prose p {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.9;
+      margin-bottom: 1.1em;
+      text-align: justify;
+    }
+    .about-prose p:last-child { margin-bottom: 0; }
+
+    .about-committees {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .about-chip {
+      font-size: 0.8rem;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: var(--cl);
+      color: var(--cd);
+      border: 1px solid rgba(2,187,199,0.2);
+      line-height: 1.4;
+    }
+
+    .about-honor-intro {
+      font-size: 0.95rem;
+      color: var(--sub);
+      line-height: 1.85;
+      margin-bottom: 24px;
+      padding: 18px 20px;
+      background: var(--white);
+      border-left: 4px solid var(--c);
+      border-radius: 0 12px 12px 0;
+      box-shadow: 0 2px 12px rgba(15, 25, 35, 0.04);
+    }
+
+    .honor-accordion { display: flex; flex-direction: column; gap: 12px; }
+    .honor-item {
+      background: var(--white);
+      border: 1px solid var(--bord);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(15, 25, 35, 0.04);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .honor-item.open {
+      border-color: rgba(2,187,199,0.35);
+      box-shadow: 0 8px 28px rgba(2,187,199,0.08);
+    }
+    .honor-trigger {
+      width: 100%;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      padding: 18px 22px;
+      border: none; background: transparent;
+      cursor: pointer; text-align: left;
+      font-family: inherit;
+    }
+    .honor-trigger:hover { background: rgba(2,187,199,0.04); }
+    .honor-trigger-left { flex: 1; min-width: 0; }
+    .honor-name {
+      font-size: 1.05rem; font-weight: 700; color: var(--text);
+      display: block; margin-bottom: 4px;
+    }
+    .honor-meta {
+      font-size: 0.78rem; color: var(--sub);
+    }
+    .honor-chevron {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: var(--cl);
+      color: var(--c);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.25s ease, background 0.2s;
+    }
+    .honor-item.open .honor-chevron {
+      transform: rotate(180deg);
+      background: var(--c);
+      color: #fff;
+    }
+    .honor-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+    }
+    .honor-body {
+      font-size: 0.9rem;
+      color: var(--sub);
+      line-height: 1.85;
+      border-top: 1px solid var(--bord);
+      padding: 16px 22px 20px;
+      margin: 0;
+    }
+    .honor-item.open .honor-panel { max-height: 2400px; }
+
+    .about-toc {
+      position: sticky;
+      top: 88px;
+      display: none;
+    }
+    .team-block {
+      margin-bottom: 36px;
+    }
+    .team-block:last-child { margin-bottom: 0; }
+    .team-block h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--cd);
+      margin-bottom: 14px;
+      letter-spacing: 0.04em;
+    }
+    .team-members {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+    .team-member-card {
+      background: var(--white);
+      border: 1px solid var(--bord);
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(15, 25, 35, 0.04);
+    }
+    .team-member-card.is-total {
+      background: linear-gradient(145deg, var(--cl) 0%, var(--white) 100%);
+      border-color: rgba(2,187,199,0.35);
+    }
+    .team-member-num {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--c);
+      line-height: 1.2;
+    }
+    .team-member-card.is-total .team-member-num {
+      font-size: 1.85rem;
+    }
+    .team-member-label {
+      font-size: 0.72rem;
+      color: var(--sub);
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+    .team-depts {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .team-dept {
+      background: var(--white);
+      border: 1px solid var(--bord);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .team-dept:hover {
+      border-color: rgba(2,187,199,0.4);
+      box-shadow: 0 6px 20px rgba(2,187,199,0.08);
+    }
+    .team-dept-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: var(--cl);
+      border: 1px solid rgba(2,187,199,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .team-dept-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .team-philosophy {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .team-philosophy-item {
+      background: var(--white);
+      border: 1px solid var(--bord);
+      border-radius: 14px;
+      padding: 22px 24px;
+      border-left: 4px solid var(--c);
+      box-shadow: 0 2px 12px rgba(15, 25, 35, 0.04);
+    }
+    .team-philosophy-item p {
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.85;
+      margin: 0;
+    }
+    .about-section-team {
+      background: linear-gradient(180deg, rgba(2,187,199,0.06) 0%, transparent 120px);
+      margin-left: -12px;
+      margin-right: -12px;
+      padding: 8px 12px 40px;
+      border-radius: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .team-members { grid-template-columns: repeat(2, 1fr); }
+      .team-members .team-member-card.is-total { grid-column: 1 / -1; }
+      .team-depts { grid-template-columns: 1fr; }
+      .team-philosophy { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 1024px) {
+      .about-layout {
+        display: grid;
+        grid-template-columns: 168px minmax(0, 1fr);
+        gap: 28px;
+        align-items: start;
+      }
+      .about-toc {
+        display: block;
+      }
+      .about-toc a {
+        display: block;
+        font-size: 0.82rem;
+        color: var(--sub);
+        text-decoration: none;
+        padding: 8px 0;
+        border-left: 2px solid transparent;
+        padding-left: 12px;
+        transition: color 0.2s, border-color 0.2s;
+      }
+      .about-toc a:hover,
+      .about-toc a.active {
+        color: var(--c);
+        border-left-color: var(--c);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .about-highlights { grid-template-columns: repeat(2, 1fr); margin-top: -28px; }
+    }
+
+    @media (max-width: 540px) {
+      nav {
+        height: 60px;
+        padding: 0 20px;
+        gap: 16px;
+      }
+      .nav-logo { gap: 8px; }
+      .nav-logo-text { font-size: 14px; }
+      .nav-logo-sub { font-size: 11px; }
+      .nav-btn { font-size: 13px; padding: 7px 16px; }
+      .section-title { font-size: 0.78rem; margin-bottom: 16px; }
+      .tabs { gap: 8px; margin-bottom: 32px; }
+      .tab { padding: 9px 18px; font-size: 0.92rem; gap: 6px; }
+      .tab-icon { font-size: 1.15em; }
+      .hero {
+        min-height: auto;
+        padding: 56px 20px 64px;
+      }
+      .hero-badge { font-size: 11px; padding: 5px 14px; margin-bottom: 22px; }
+      .hero-badge-dot { width: 6px; height: 6px; }
+      .hero h1 { font-size: clamp(2rem, 9vw, 2.6rem); margin-bottom: 16px; }
+      .hero-sub { font-size: 0.95rem; max-width: 100%; margin-bottom: 32px; }
+      .hero-search { max-width: 100%; }
+      .hero-search input { padding: 15px 18px 15px 46px; font-size: 1rem; }
+      .hero-search-icon { left: 16px; width: 18px; height: 18px; }
+      .main { padding: 40px 16px 80px; }
+      .grid { grid-template-columns: 1fr; }
+      .stats { gap: 28px; }
+      footer { justify-content: center; text-align: center; }
+      .nav-links { display: none; }
+      .about-highlights { grid-template-columns: 1fr 1fr; padding: 0 16px; }
+      .about-main { padding-left: 16px; padding-right: 16px; }
+      .about-prose p { text-align: left; }
+      .about-section-team {
+        margin-left: -16px;
+        margin-right: -16px;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- 导航栏 -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img class="nav-logo-img" src="assets/goalin-logo.png" alt="Goal In Legal 高领法律" />
+    <span class="nav-logo-text">Goalin Legal</span>
+    <span class="nav-logo-sub">· 高领法律</span>
+  </a>
+  <div class="nav-divider"></div>
+  <div class="nav-links">
+    <a class="nav-link active" href="#" data-view="home" id="navHome">智能体</a>
+    <a class="nav-link" href="#" data-view="docs" id="navDocs">使用文档</a>
+    <a class="nav-link" href="#" data-view="about" id="navAbout">关于我们</a>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn nav-btn-ghost" id="navLoginBtn" type="button">登录</button>
+    <button class="nav-btn nav-btn-primary" id="navUseBtn" type="button">立即使用</button>
+  </div>
+</nav>
+
+<!-- 首页：智能体中心 -->
+<div id="viewHome" class="page-view active">
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="hero-badge-dot"></span>AI Agent Hub</div>
+    <h1>高领<span>智能体</span>中心</h1>
+    <p class="hero-sub">专业法律AI助手，覆盖家事、税务、文书、基金等核心领域。</p>
+    <div class="hero-search">
+      <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="搜索智能体模板…" />
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <p class="section-title">按类别浏览</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tag="all">全部</button>
+    <button class="tab" data-tag="民商事"><span class="tab-icon">⚖️</span>民商事</button>
+    <button class="tab" data-tag="合规"><span class="tab-icon">🏛️</span>合规</button>
+    <button class="tab" data-tag="税务"><span class="tab-icon">🧾</span>税务</button>
+    <button class="tab" data-tag="助手"><span class="tab-icon">📋</span>助手</button>
+    <button class="tab" data-tag="文书"><span class="tab-icon">📝</span>文书</button>
+  </div>
+
+  <div class="result-row">
+    <p class="result-count">共 <strong id="cnt">5</strong> 个智能体</p>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty"><p>没有找到匹配的智能体</p></div>
+
+  <div class="stats" id="stats">
+    <div class="stat-item">
+      <span class="stat-num" id="statTotal">5</span>
+      <div class="stat-label">智能体总数</div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num online" id="statOnline">2</span>
+      <div class="stat-label">已上线</div>
+      <span class="stat-badge online"><span class="stat-badge-dot"></span>运行中</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num beta" id="statBeta">3</span>
+      <div class="stat-label">内测中</div>
+      <span class="stat-badge beta"><span class="stat-badge-dot"></span>申请体验</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">24/7</span>
+      <div class="stat-label">全天候服务</div>
+    </div>
+  </div>
+</div>
+</div><!-- /viewHome -->
+
+<!-- 关于我们 -->
+<div id="viewAbout" class="page-view" aria-hidden="true">
+  <div class="about-hero">
+    <div class="about-hero-inner">
+      <h1>关于我们</h1>
+      <p>锦天城律师事务所 · 高领律师团队 · 一站式法律服务</p>
+      <button type="button" class="about-back" id="aboutBackBtn" aria-label="返回智能体中心">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        返回智能体中心
+      </button>
+    </div>
+  </div>
+
+  <div class="about-highlights" role="list">
+    <div class="about-highlight" role="listitem">
+      <div class="about-highlight-num">1999</div>
+      <div class="about-highlight-label">年成立</div>
+    </div>
+    <div class="about-highlight" role="listitem">
+      <div class="about-highlight-num">3300+</div>
+      <div class="about-highlight-label">执业律师</div>
+    </div>
+    <div class="about-highlight" role="listitem">
+      <div class="about-highlight-num">30+</div>
+      <div class="about-highlight-label">全球办公室</div>
+    </div>
+    <div class="about-highlight" role="listitem">
+      <div class="about-highlight-num">19</div>
+      <div class="about-highlight-label">专委会与行业委</div>
+    </div>
+  </div>
+
+  <div class="about-main">
+    <div class="about-layout">
+      <nav class="about-toc" aria-label="页面目录">
+        <a href="#about-intro" data-toc>律所简介</a>
+        <a href="#about-committees" data-toc>专业委员会</a>
+        <a href="#about-team" data-toc>团队介绍</a>
+        <a href="#about-honors" data-toc>我们的荣誉</a>
+      </nav>
+
+      <div class="about-content">
+        <section class="about-section" id="about-intro">
+          <h2>律所简介</h2>
+          <div class="about-prose">
+            <p>锦天城律师事务所成立于1999年，是一家提供一站式法律服务的综合性律师事务所，在核心业务领域具备行业领先优势。</p>
+            <p>发轫于中国上海的锦天城，目前在北京、杭州、深圳、苏州、南京、成都、重庆、太原、青岛、厦门、天津、济南、合肥、郑州、福州、南昌、西安、广州、长春、武汉、乌鲁木齐、海口、长沙、香港、伦敦、西雅图、新加坡和东京开设办公室，并与香港史蒂文生黄律师事务所联营，与国际律师事务所鸿鹄（Bird &amp; Bird LLP）建立战略合作关系。</p>
+            <p>承袭海派文化的锦天城，不断汇集法律行业的中坚力量与优秀青年。从2018年的近2300名律师，到2019年的超2800名律师，再到如今的3300余名律师，拥有充足人才储备的锦天城不断完成律师规模上的突破。</p>
+            <p>锦天城从未停止进行法律专业服务的升级与迭代，持续优化业务领域体系。锦天城设有十九大专业委员会和行业委员会（见下文）。</p>
+          </div>
+        </section>
+
+        <section class="about-section" id="about-committees">
+          <h2>专业委员会与行业委员会</h2>
+          <div class="about-committees">
+            <span class="about-chip">证券与资本市场专业委员会</span>
+            <span class="about-chip">银行与金融专业委员会</span>
+            <span class="about-chip">公司与并购专业委员会</span>
+            <span class="about-chip">诉讼与仲裁专业委员会</span>
+            <span class="about-chip">房地产与建设工程专业委员会</span>
+            <span class="about-chip">知识产权专业委员会</span>
+            <span class="about-chip">国际贸易专业委员会</span>
+            <span class="about-chip">跨境投资专业委员会</span>
+            <span class="about-chip">海事海商专业委员会</span>
+            <span class="about-chip">企业破产重整与清算专业委员会</span>
+            <span class="about-chip">刑事专业委员会</span>
+            <span class="about-chip">税法专业委员会</span>
+            <span class="about-chip">劳动与社会保障专业委员会</span>
+            <span class="about-chip">婚姻家事与私人财富管理专业委员会</span>
+            <span class="about-chip">互联网与信息技术行业委员会</span>
+            <span class="about-chip">医疗健康与医药行业委员会</span>
+            <span class="about-chip">能源自然资源与环境保护行业委员会</span>
+            <span class="about-chip">消费与零售行业委员会</span>
+            <span class="about-chip">国资国企业务委员会</span>
+          </div>
+        </section>
+
+        <section class="about-section about-section-team" id="about-team">
+          <h2>团队介绍</h2>
+
+          <div class="team-block">
+            <h3>团队创办</h3>
+            <div class="about-prose">
+              <p>高领律师团队隶属于上海锦天城（厦门）律师事务所，由创所高级合伙人林富志律师发起创办，运行至今十五年有余。</p>
+            </div>
+          </div>
+
+          <div class="team-block">
+            <h3>团队成员</h3>
+            <p class="about-honor-intro" style="margin-bottom:18px;">高领律师团队拥有 <strong style="color:var(--cd);">32</strong> 名成员，以合伙人为核心、分工协作，为客户提供一体化法律服务。</p>
+            <div class="team-members" role="list">
+              <div class="team-member-card is-total" role="listitem">
+                <div class="team-member-num">32</div>
+                <div class="team-member-label">团队总人数</div>
+              </div>
+              <div class="team-member-card" role="listitem">
+                <div class="team-member-num">11</div>
+                <div class="team-member-label">合伙人</div>
+              </div>
+              <div class="team-member-card" role="listitem">
+                <div class="team-member-num">12</div>
+                <div class="team-member-label">执业律师</div>
+              </div>
+              <div class="team-member-card" role="listitem">
+                <div class="team-member-num">7</div>
+                <div class="team-member-label">律师助理</div>
+              </div>
+              <div class="team-member-card" role="listitem">
+                <div class="team-member-num">2</div>
+                <div class="team-member-label">行政文秘</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="team-block">
+            <h3>团队服务</h3>
+            <div class="about-prose">
+              <p>团队以投融资为主要业务核心，分为证券资本部、企业合规部、争议解决部、刑事风控合规部，在专业分工的基础上，为客户输出高效协作、一体化的法律服务。</p>
+            </div>
+            <div class="team-depts">
+              <div class="team-dept">
+                <span class="team-dept-icon" aria-hidden="true">📈</span>
+                <span class="team-dept-name">证券资本部</span>
+              </div>
+              <div class="team-dept">
+                <span class="team-dept-icon" aria-hidden="true">🏛️</span>
+                <span class="team-dept-name">企业合规部</span>
+              </div>
+              <div class="team-dept">
+                <span class="team-dept-icon" aria-hidden="true">⚖️</span>
+                <span class="team-dept-name">争议解决部</span>
+              </div>
+              <div class="team-dept">
+                <span class="team-dept-icon" aria-hidden="true">🛡️</span>
+                <span class="team-dept-name">刑事风控合规部</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="team-block">
+            <h3>团队理念</h3>
+            <div class="team-philosophy">
+              <div class="team-philosophy-item">
+                <p>秉持专业与负责，为客户提供有价值的法律服务。</p>
+              </div>
+              <div class="team-philosophy-item">
+                <p>给予包容与扶持，助同伴成长为领域专业的律师。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="about-section" id="about-honors">
+          <h2>我们的荣誉</h2>
+          <p class="about-honor-intro">锦天城多次被中国司法部及其下属司法行政机构、律师行业协会、国际知名法律媒体及权威评级机构等评选为中国最顶尖的法律服务提供者之一，位居全国十大品牌律师事务所前列。</p>
+
+          <div class="honor-accordion" id="honorAccordion">
+            <div class="honor-item open">
+              <button type="button" class="honor-trigger" aria-expanded="true">
+                <span class="honor-trigger-left">
+                  <span class="honor-name">钱伯斯 Chambers</span>
+                  <span class="honor-meta">2022 · 多业务领域重点推荐</span>
+                </span>
+                <span class="honor-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="honor-panel">
+                <div class="honor-body">2022年在银行与金融，资本市场：境内发行，资本市场：资产证券化及衍生品，公司与并购，争议解决，知识产权：诉讼，国际贸易/世贸：应诉方，投资基金，房地产与建筑工程，海事海商：中国东部，科技通信与媒体，公司/商事：浙江、福建、广东、江苏等业务领域获重点推荐。</div>
+              </div>
+            </div>
+            <div class="honor-item">
+              <button type="button" class="honor-trigger" aria-expanded="false">
+                <span class="honor-trigger-left">
+                  <span class="honor-name">亚洲法律杂志 ALB</span>
+                  <span class="honor-meta">年度最佳 · 区域市场大奖</span>
+                </span>
+                <span class="honor-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="honor-panel">
+                <div class="honor-body">八度蝉联「年度最佳上海律师事务所大奖」；「年度股票市场交易大奖」；「年度并购交易大奖」；多年连续蝉联「ALB China 并购排名」榜单，ALB China 知识产权业务排名「专利」、「商标/著作权」榜单；入选首届「ALB China 区域市场排名：长三角地区」榜单，首届「ALB China 区域市场排名：华南地区」榜单；揽获「2021 ALB中国区域市场法律大奖：沿海地区」七项大奖：银行与金融业律师事务所大奖；资本市场律师事务所大奖；争议解决律师事务所大奖；知识产权律师事务所大奖；国际贸易律师事务所大奖；科技、媒体与电信律师事务所大奖；年度东部沿海地区律师事务所大奖。</div>
+              </div>
+            </div>
+            <div class="honor-item">
+              <button type="button" class="honor-trigger" aria-expanded="false">
+                <span class="honor-trigger-left">
+                  <span class="honor-name">商法</span>
+                  <span class="honor-meta">金联奖 · 多专业领域获奖</span>
+                </span>
+                <span class="honor-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="honor-panel">
+                <div class="honor-body">2021年度金联奖-精英律师事务所；资产管理、航空、建筑及基础设施、国际贸易、互联网及电商、知识产权（版权）、境外并购、破产及重组、海商海事、税务等多个专业、行业领域中获奖；荣获「2020年度金联奖-精英律师事务所」，在航空、境内资本市场、消费品及零售、涉外争议解决、家族财富管理、金融科技及区块链、境外并购、房地产投资及REITs基金、结构性融资/资产证券化等多个专业、行业领域获奖。锦天城重庆、东北、杭州、南京荣获卓越综合实力律所奖项。</div>
+              </div>
+            </div>
+            <div class="honor-item">
+              <button type="button" class="honor-trigger" aria-expanded="false">
+                <span class="honor-trigger-left">
+                  <span class="honor-name">Asialaw Profiles</span>
+                  <span class="honor-meta">2021–2022 · 多业务领域获推荐</span>
+                </span>
+                <span class="honor-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="honor-panel">
+                <div class="honor-body">2022年在银行与金融、资本市场、公司与并购、争议解决、税法、投资基金、劳动与雇佣、知识产权、破产重整与清算、建筑工程、保险等多项业务领域获推荐；2021年在银行与金融、资本市场、公司与并购、争议解决、税法、投资基金、劳动与雇佣、建筑工程、保险等多项业务领域获推荐。</div>
+              </div>
+            </div>
+            <div class="honor-item">
+              <button type="button" class="honor-trigger" aria-expanded="false">
+                <span class="honor-trigger-left">
+                  <span class="honor-name">Legal 500</span>
+                  <span class="honor-meta">2021–2022 · 重点推荐律所</span>
+                </span>
+                <span class="honor-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="honor-panel">
+                <div class="honor-body">2022年在江苏南京、浙江杭州、四川成都（重庆）、银行与金融、资本市场、公司与并购、争议解决：诉讼、知识产权、投资基金、私募股权、私人财富、房地产与建设工程、破产重组、TMT、税法、国际贸易等多项执业领域荣登「重点推荐律所」。2021年在银行与金融、资本市场、公司与并购、投资基金、房地产与建筑工程、WTO/国际贸易、争议解决、私募股权、知识产权等多项执业领域荣登「重点推荐律所」。</div>
+              </div>
+            </div>
+            <div class="honor-item">
+              <button type="button" class="honor-trigger" aria-expanded="false">
+                <span class="honor-trigger-left">
+                  <span class="honor-name">IFLR1000</span>
+                  <span class="honor-meta">2021–2022 · 多领域重点推荐</span>
+                </span>
+                <span class="honor-chevron" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="honor-panel">
+                <div class="honor-body">2022年在银行与金融、资本市场：债券、资本市场：股权、资本市场：结构金融与证券化、投资基金、公司与并购、私募股权、破产重整等多个领域荣获重点推荐；2021年在银行与金融、资本市场：债券、资本市场：股权、资本市场：结构金融与证券化、投资基金、公司与并购、私募股权、破产重整等多个领域荣获重点推荐。</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div><!-- /viewAbout -->
+
+<footer>
+  <span class="footer-brand">⚖ &nbsp;锦天城（厦门）律师事务所 · 高领团队 · <a href="#about" id="footerAboutLink" style="color:rgba(2,187,199,0.55);text-decoration:none;">关于我们</a></span>
+  <span class="footer-copy">© 2025 &nbsp;AI Agent Hub &nbsp;·&nbsp; All rights reserved</span>
+</footer>
+
+<script>
+const CHECK_SVG = `<svg class="card-check" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>`;
+const ARROW_SVG = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+
+const agents = [
+  { id:1, name:"婚姻家事咨询",     icon:"⚖️", tag:"民商事", status:"online",
+    subtitle:"面向律师与当事人",
+    url:"agent-family.html",
+    desc:"覆盖离婚诉讼、财产分割、子女抚养、继承纠纷等家事法律问题，提供专业法律意见与策略建议。",
+    features:["离婚诉讼策略分析","财产分割方案建议","子女抚养权评估"] },
+  { id:2, name:"客户需求整理",     icon:"📋", tag:"助手", status:"online",
+    subtitle:"面向律师团队",
+    url:"agent-client.html",
+    desc:"自动提炼客户沟通要点，结构化整理需求清单、优先级与跟进计划，让每一条诉求都有迹可循。",
+    features:["自动提炼沟通要点","结构化需求清单","优先级与跟进计划"] },
+  { id:6, name:"执行文书起草",     icon:"📝", tag:"文书", status:"online",
+    subtitle:"面向诉讼与执行团队",
+    url:"agent-document.html",
+    desc:"基于裁判文书与案情材料，辅助起草强制执行申请、财产保全、执行异议等执行类法律文书，支持附件上传解析。",
+    features:["强制执行申请书","财产保全文书","执行异议与复议"] },
+  { id:3, name:"国企投资合规咨询", icon:"🏛️", tag:"合规", status:"online",
+    subtitle:"面向国企法务",
+    url:"agent-compliance.html",
+    desc:"聚焦国有企业对外投资合规要点，涵盖审批流程、资产保值、信息披露及监管政策解读，支持附件材料分析。",
+    features:["对外投资审批指引","资产保值合规审查","监管政策实时解读"] },
+  { id:4, name:"制度审查",         icon:"🔍", tag:"合规", status:"beta",
+    subtitle:"面向企业合规团队",
+    url:"http://hiagent.aigc.smdata.com.cn/product/llm/chat/d85hgql4shh7i6sjdvjg",
+    desc:"对企业规章制度、合同范本及内部流程进行合法性与合规性审查，识别潜在风险条款并提出修改意见。",
+    features:["规章制度合法性审查","合同范本风险识别","流程合规优化建议"] },
+  { id:5, name:"税务咨询",         icon:"🧾", tag:"税务", status:"online",
+    subtitle:"面向企业财务法务",
+    url:"agent-tax.html",
+    desc:"涵盖企业所得税、增值税、个税筹划及税务稽查应对，结合最新政策给出合法节税方案。",
+    features:["企业所得税筹划","增值税合规分析","税务稽查应对策略"] },
+];
+
+function updateStats() {
+  const online = agents.filter(a => a.status === 'online').length;
+  const beta   = agents.filter(a => a.status === 'beta').length;
+  document.getElementById('statTotal').textContent  = agents.length;
+  document.getElementById('statOnline').textContent = online;
+  document.getElementById('statBeta').textContent   = beta;
+}
+updateStats();
+
+function renderCards(list) {
+  const grid  = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  document.getElementById('cnt').textContent = list.length;
+  grid.innerHTML = '';
+  if (!list.length) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  list.forEach(a => {
+    const card = document.createElement('a');
+    const isOnline = a.status === 'online';
+    card.className = `card ${isOnline ? 'online' : 'beta'}`;
+    const isExternal = /^https?:\/\//i.test(a.url);
+    card.href = a.url;
+    if (isExternal) {
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+    }
+    card.dataset.tag = a.tag;
+    const featuresHtml = (a.features || []).map(f =>
+      `<li>${CHECK_SVG}${f}</li>`
+    ).join('');
+    card.innerHTML = `
+      <div class="card-icon">${a.icon}</div>
+      <span class="card-badge ${isOnline ? 'online' : 'beta'}">${a.tag} · ${isOnline ? '已上线' : '内测中'}</span>
+      <h3>${a.name}</h3>
+      <p class="card-subtitle">${a.subtitle || ''}</p>
+      <p class="card-desc">${a.desc}</p>
+      <ul class="card-features">${featuresHtml}</ul>
+      <span class="card-cta">
+        ${isOnline ? '立即使用' : '申请体验'}
+        ${ARROW_SVG}
+      </span>`;
+    grid.appendChild(card);
+  });
+  observeCards();
+}
+
+let currentTag='all', currentQuery='';
+function filtered() {
+  return agents.filter(a => {
+    const matchTag = currentTag==='all' || a.tag===currentTag;
+    const q = currentQuery.toLowerCase();
+    return matchTag && (!q || a.name.includes(q) || a.desc.includes(q) || a.tag.includes(q));
+  });
+}
+
+document.getElementById('tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab');
+  if (!btn) return;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTag = btn.dataset.tag;
+  renderCards(filtered());
+});
+document.getElementById('searchInput').addEventListener('input', e => {
+  currentQuery = e.target.value;
+  renderCards(filtered());
+});
+renderCards(agents);
+
+/* 滚动进度条 */
+const progressBar = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const s = document.documentElement;
+  progressBar.style.width = (s.scrollTop / (s.scrollHeight - s.clientHeight) * 100) + '%';
+}, { passive: true });
+
+/* 卡片入场 */
+function observeCards() {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); } });
+  }, { threshold: 0.10 });
+  document.querySelectorAll('.card').forEach(c => io.observe(c));
+}
+
+/* 统计入场 */
+const statsEl = document.getElementById('stats');
+new IntersectionObserver(([e]) => {
+  if (e.isIntersecting) { statsEl.classList.add('visible'); }
+}, { threshold: 0.2 }).observe(statsEl);
+
+/* ── 视图切换：首页 / 关于我们 ── */
+const viewHome  = document.getElementById('viewHome');
+const viewAbout = document.getElementById('viewAbout');
+const navLinks  = document.querySelectorAll('.nav-link[data-view]');
+
+function setNavActive(view) {
+  navLinks.forEach(link => {
+    link.classList.toggle('active', link.dataset.view === view);
+  });
+}
+
+function switchView(view, { scrollTop = true } = {}) {
+  const isAbout = view === 'about';
+  viewHome.classList.toggle('active', !isAbout);
+  viewAbout.classList.toggle('active', isAbout);
+  viewHome.setAttribute('aria-hidden', isAbout ? 'true' : 'false');
+  viewAbout.setAttribute('aria-hidden', isAbout ? 'false' : 'true');
+  setNavActive(isAbout ? 'about' : 'home');
+  if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (isAbout) {
+    history.replaceState(null, '', '#about');
+  } else if (location.hash === '#about') {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+}
+
+navLinks.forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const view = link.dataset.view;
+    if (view === 'about') switchView('about');
+    else if (view === 'home') switchView('home');
+    else if (view === 'docs') {
+      alert('使用文档即将上线，敬请期待。');
+    }
+  });
+});
+
+document.querySelector('.nav-logo')?.addEventListener('click', e => {
+  e.preventDefault();
+  switchView('home');
+});
+
+document.getElementById('aboutBackBtn')?.addEventListener('click', () => switchView('home'));
+
+document.getElementById('footerAboutLink')?.addEventListener('click', e => {
+  e.preventDefault();
+  switchView('about');
+});
+
+if (location.hash === '#about') switchView('about', { scrollTop: false });
+
+window.addEventListener('hashchange', () => {
+  if (location.hash === '#about' && !viewAbout.classList.contains('active')) switchView('about', { scrollTop: false });
+  else if (location.hash !== '#about' && viewAbout.classList.contains('active')) switchView('home', { scrollTop: false });
+});
+
+/* 荣誉手风琴 */
+document.getElementById('honorAccordion')?.addEventListener('click', e => {
+  const trigger = e.target.closest('.honor-trigger');
+  if (!trigger) return;
+  const item = trigger.closest('.honor-item');
+  const willOpen = !item.classList.contains('open');
+  document.querySelectorAll('.honor-item').forEach(el => {
+    el.classList.remove('open');
+    el.querySelector('.honor-trigger')?.setAttribute('aria-expanded', 'false');
+  });
+  if (willOpen) {
+    item.classList.add('open');
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+});
+
+/* 关于页目录锚点（大屏） */
+document.getElementById('navLoginBtn')?.addEventListener('click', () => {
+  if (window.GoalinAuth?.isLoggedIn?.()) GoalinAuth.logout();
+  location.href = GoalinAuth.loginPageUrl();
+});
+document.getElementById('navUseBtn')?.addEventListener('click', () => {
+  document.getElementById('viewHome')?.scrollIntoView({ behavior: 'smooth' });
+});
+GoalinAuth.fetchMe().then(u => {
+  const btn = document.getElementById('navLoginBtn');
+  if (btn && u) btn.textContent = '退出登录';
+});
+
+document.querySelectorAll('.about-toc a[data-toc]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const id = a.getAttribute('href')?.slice(1);
+    const el = id && document.getElementById(id);
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({ top, behavior: 'smooth' });
+      document.querySelectorAll('.about-toc a').forEach(x => x.classList.remove('active'));
+      a.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>
