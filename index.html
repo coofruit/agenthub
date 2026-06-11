@@ -108,15 +108,6 @@
       max-width: 720px;
       position: relative;
     }
-    /* 光晕 */
-    .hero::before {
-      content: '';
-      position: absolute; inset: 0; pointer-events: none;
-      background:
-        radial-gradient(ellipse 55% 80% at 50% 120%, rgba(2,187,199,0.18) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 50% at 15% 40%,  rgba(2,187,199,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 50% at 85% 40%,  rgba(2,187,199,0.07) 0%, transparent 60%);
-    }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 8px;
       background: rgba(2,187,199,0.12);
@@ -128,24 +119,18 @@
     }
     .hero-badge-dot {
       width: 7px; height: 7px; border-radius: 50%;
-      background: var(--c); box-shadow: 0 0 8px var(--c);
-      animation: blink 2.5s ease-in-out infinite;
+      background: var(--c);
     }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
     .hero h1 {
       font-size: clamp(2.5rem, 6.5vw, 4.25rem);
-      font-weight: 800; letter-spacing: -0.02em;
-      line-height: 1.12; margin-bottom: 20px; position: relative;
-      /* 全部使用主色流光渐变 */
-      background: linear-gradient(110deg, #ffffff 0%, var(--cl) 30%, var(--c) 55%, var(--cl) 78%, #ffffff 100%);
-      background-size: 220% auto;
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: shimmer 7s linear infinite;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1.12;
+      margin-bottom: 20px;
+      position: relative;
+      color: var(--c);
     }
-    @keyframes shimmer { 0%{background-position:0%} 100%{background-position:220%} }
-    .hero h1 span { -webkit-text-fill-color: inherit; }
     .hero-sub {
       font-size: clamp(1.05rem, 1.8vw, 1.25rem);
       color: rgba(2,187,199,0.60);
