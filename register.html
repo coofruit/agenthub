@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>注册 · 高领智能体中心</title>
+  <script src="assets/app-base.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/legal-docs.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --c:    #02BBC7;
+      --cd:   #018a93;
+      --cl:   #e0f9fb;
+      --navy: #0f1923;
+      --text: #1a2332;
+      --sub:  #8a9aaa;
+      --bord: #e8ecef;
+      --err:  #e74c3c;
+      --ok:   #10b981;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .login-page { display: flex; min-height: 100vh; }
+
+    /* ── 左侧品牌区 ── */
+    .login-visual {
+      flex: 1;
+      position: relative; overflow: hidden;
+      background: linear-gradient(150deg, #0a0f1a 0%, #0e1e36 60%, #0a0f1a 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 48px;
+    }
+    .visual-content { position: relative; z-index: 1; text-align: center; }
+    .visual-logo { width: 72px; height: 72px; border-radius: 14px; margin: 0 auto 24px; display: block; }
+    .visual-title { font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; color: #fff; letter-spacing: 0.04em; margin-bottom: 12px; }
+    .visual-sub { font-size: 1rem; color: rgba(2,187,199,0.65); letter-spacing: 0.12em; margin-bottom: 40px; }
+    .visual-steps { list-style: none; text-align: left; display: inline-block; }
+    .visual-steps li {
+      display: flex; align-items: flex-start; gap: 14px;
+      font-size: 0.88rem; color: rgba(255,255,255,0.55);
+      padding: 8px 0;
+    }
+    .step-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 1.5px solid var(--c);
+      color: var(--c); font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .visual-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 30% 60%, rgba(2,187,199,0.10) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 80% 20%, rgba(2,187,199,0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .visual-watermark {
+      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+      font-size: 0.75rem; color: rgba(255,255,255,0.18); letter-spacing: 0.08em; white-space: nowrap;
+    }
+
+    /* ── 右侧面板 ── */
+    .login-panel {
+      width: 520px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 48px 64px 32px;
+      background: #fff;
+      box-shadow: -4px 0 32px rgba(15,25,35,0.05);
+    }
+    .panel-inner { width: 100%; max-width: 380px; }
+
+    .panel-brand { text-align: center; margin-bottom: 32px; display: none; }
+    .panel-brand img { width: 44px; height: 44px; border-radius: 10px; margin-bottom: 10px; }
+    .panel-brand-name { font-size: 18px; font-weight: 700; color: var(--c); }
+
+    /* ── 标题 ── */
+    .panel-heading { margin-bottom: 28px; }
+    .panel-heading h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .panel-heading p { font-size: 14px; color: var(--sub); line-height: 1.6; }
+
+    /* ── 步骤指示器 ── */
+    .step-bar {
+      display: flex; align-items: center;
+      margin-bottom: 28px; gap: 0;
+    }
+    .step-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--sub); font-weight: 500;
+    }
+    .step-item.active { color: var(--c); }
+    .step-item.done { color: var(--ok); }
+    .step-dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 1.5px solid var(--bord);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--sub);
+      flex-shrink: 0; transition: all 0.2s;
+    }
+    .step-item.active .step-dot { border-color: var(--c); color: var(--c); }
+    .step-item.done .step-dot { border-color: var(--ok); background: var(--ok); color: #fff; }
+    .step-line { flex: 1; height: 1px; background: var(--bord); margin: 0 8px; }
+
+    /* ── 表单区 ── */
+    .reg-step { display: none; }
+    .reg-step.active { display: block; }
+
+    .field { position: relative; margin-bottom: 14px; }
+    .field-icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      width: 17px; height: 17px; color: #b8c4cc; pointer-events: none;
+    }
+    .field input {
+      width: 100%; height: 46px;
+      padding: 0 14px 0 42px;
+      border: 1.5px solid var(--bord); border-radius: 8px;
+      font-size: 15px; color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+    }
+    .field input:focus {
+      outline: none; border-color: var(--c);
+      box-shadow: 0 0 0 3px rgba(2,187,199,0.10);
+    }
+    .field input::placeholder { color: #c8d2d8; }
+
+    .phone-row { display: flex; gap: 10px; margin-bottom: 14px; }
+    .phone-row .field { flex: 1; margin-bottom: 0; }
+    .send-code-btn {
+      flex-shrink: 0; width: 118px; height: 46px;
+      border: 1.5px solid var(--c); border-radius: 8px;
+      background: transparent; color: var(--c);
+      font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .send-code-btn:hover:not(:disabled) { background: var(--cl); }
+    .send-code-btn:disabled { border-color: var(--bord); color: var(--sub); cursor: not-allowed; }
+
+    .agree {
+      display: flex; align-items: flex-start; gap: 8px;
+      margin: 14px 0 18px; font-size: 12px; color: var(--sub); line-height: 1.7;
+    }
+    .agree input { margin-top: 2px; accent-color: var(--c); flex-shrink: 0; }
+    .agree a { color: var(--c); text-decoration: none; }
+    .agree a:hover { text-decoration: underline; }
+
+    .btn-primary {
+      width: 100%; height: 46px;
+      border: none; border-radius: 8px;
+      background: var(--c); color: #fff;
+      font-size: 15px; font-weight: 600; cursor: pointer; letter-spacing: 0.02em;
+      transition: background 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--cd); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-secondary {
+      width: 100%; height: 46px;
+      border: 1.5px solid var(--bord); border-radius: 8px;
+      background: transparent; color: var(--sub);
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: all 0.2s; margin-top: 10px;
+    }
+    .btn-secondary:hover { border-color: var(--c); color: var(--c); }
+
+    .msg {
+      margin-top: 12px; font-size: 13px;
+      min-height: 18px; text-align: center;
+    }
+    .msg.err { color: var(--err); }
+    .msg.ok  { color: var(--ok); }
+
+    /* 成功状态 */
+    .success-view {
+      text-align: center; padding: 20px 0;
+    }
+    .success-icon {
+      width: 68px; height: 68px; border-radius: 50%;
+      background: rgba(16,185,129,0.10);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .success-icon svg { color: var(--ok); width: 32px; height: 32px; }
+    .success-view h3 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .success-view p { font-size: 14px; color: var(--sub); line-height: 1.7; margin-bottom: 28px; }
+    .success-phone { color: var(--c); font-weight: 600; }
+
+    /* 可选字段提示 */
+    .optional-label {
+      font-size: 11px; color: var(--sub);
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    }
+    .field input.with-optional { padding-right: 40px; }
+
+    .form-hint { font-size: 12px; color: var(--sub); text-align: center; margin-top: 14px; line-height: 1.7; }
+    .form-hint a { color: var(--c); text-decoration: none; }
+    .form-hint a:hover { text-decoration: underline; }
+
+    .back-link {
+      display: block; margin-top: 24px; text-align: center;
+      font-size: 13px; color: var(--sub); text-decoration: none; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--c); }
+
+    .panel-footer {
+      margin-top: auto; padding-top: 32px;
+      text-align: center; font-size: 11px;
+      color: #c0cad2; line-height: 2;
+    }
+
+    /* ── 协议弹窗 ── */
+    .legal-modal {
+      display: none; position: fixed; inset: 0;
+      z-index: 1000; background: rgba(15,25,35,0.45);
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .legal-modal.open { display: flex; }
+    .legal-dialog {
+      width: min(720px, 100%); max-height: min(82vh, 800px);
+      background: #fff; border-radius: 12px;
+      display: flex; flex-direction: column;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.18); overflow: hidden;
+    }
+    .legal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px; border-bottom: 1px solid var(--bord); flex-shrink: 0;
+    }
+    .legal-header h3 { font-size: 17px; font-weight: 600; }
+    .legal-close {
+      border: none; background: none; font-size: 22px; line-height: 1;
+      color: var(--sub); cursor: pointer; padding: 4px 8px;
+    }
+    .legal-close:hover { color: var(--c); }
+    .legal-body {
+      padding: 20px 24px 28px; overflow-y: auto;
+      font-size: 14px; line-height: 1.85; color: #3a4a5a;
+      white-space: pre-wrap; word-break: break-word;
+    }
+
+    /* ── 响应式 ── */
+    @media (max-width: 960px) {
+      .login-visual { display: none; }
+      .login-panel { width: 100%; box-shadow: none; padding: 40px 28px 28px; }
+      .panel-brand { display: block; }
+    }
+    @media (max-width: 480px) {
+      .login-panel { padding: 32px 20px 24px; }
+    }
+  </style>
+</head>
+<body>
+<div class="login-page">
+
+  <!-- 左侧品牌区 -->
+  <aside class="login-visual" aria-hidden="true">
+    <div class="visual-bg"></div>
+    <div class="visual-content">
+      <img class="visual-logo" src="assets/goalin-logo.png" alt="" />
+      <div class="visual-title">注册高领账号</div>
+      <div class="visual-sub">3 步完成注册</div>
+      <ol class="visual-steps">
+        <li><span class="step-num">1</span><span>输入手机号，获取短信验证码</span></li>
+        <li><span class="step-num">2</span><span>填写验证码，完成手机绑定</span></li>
+        <li><span class="step-num">3</span><span>设置昵称，开始使用 AI 智能体</span></li>
+      </ol>
+    </div>
+    <div class="visual-watermark">锦天城（厦门）律师事务所 · 高领团队</div>
+  </aside>
+
+  <!-- 右侧注册面板 -->
+  <section class="login-panel">
+    <div class="panel-inner">
+
+      <!-- 移动端 Logo -->
+      <div class="panel-brand">
+        <img src="assets/goalin-logo.png" alt="Goalin Legal" />
+        <div class="panel-brand-name">高领智能体中心</div>
+      </div>
+
+      <!-- 标题 -->
+      <div class="panel-heading">
+        <h2>创建账号</h2>
+        <p>已有账号？<a href="login.html" id="goLogin" style="color:var(--c);text-decoration:none">立即登录</a></p>
+      </div>
+
+      <!-- 步骤指示器 -->
+      <div class="step-bar" id="stepBar">
+        <div class="step-item active" id="si1">
+          <div class="step-dot">1</div>
+          <span>手机验证</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" id="si2">
+          <div class="step-dot">2</div>
+          <span>完善资料</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" id="si3">
+          <div class="step-dot">3</div>
+          <span>注册成功</span>
+        </div>
+      </div>
+
+      <!-- ═══ Step 1: 手机号 + 验证码 ═══ -->
+      <div class="reg-step active" id="step1">
+        <div class="phone-row">
+          <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.59 1.32h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/>
+            </svg>
+            <input type="tel" id="regPhone" placeholder="请输入手机号" maxlength="11" inputmode="numeric" autocomplete="tel" />
+          </div>
+          <button class="send-code-btn" id="regSendBtn" type="button">获取验证码</button>
+        </div>
+
+        <div class="field">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input type="text" id="regCode" placeholder="请输入 6 位验证码" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+        </div>
+
+        <label class="agree">
+          <input type="checkbox" id="regAgree" checked />
+          <span>我已阅读并同意 <a href="#" id="linkTerms">《用户服务协议》</a> 和 <a href="#" id="linkPrivacy">《隐私政策》</a></span>
+        </label>
+
+        <button class="btn-primary" id="step1Btn" type="button">下一步，验证手机</button>
+        <div class="msg err" id="step1Msg"></div>
+      </div>
+
+      <!-- ═══ Step 2: 完善昵称（可选） ═══ -->
+      <div class="reg-step" id="step2">
+        <p style="font-size:13px;color:var(--sub);margin-bottom:18px;line-height:1.7">
+          手机号已验证，可设置昵称（可跳过，稍后在个人设置中修改）
+        </p>
+        <div class="field" style="position:relative;">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input type="text" id="regNickname" class="with-optional" placeholder="设置昵称（可选）" maxlength="20" autocomplete="nickname" />
+          <span class="optional-label">选填</span>
+        </div>
+        <button class="btn-primary" id="step2Btn" type="button">完成注册</button>
+        <button class="btn-secondary" id="step2Skip" type="button">跳过，直接进入</button>
+        <div class="msg err" id="step2Msg"></div>
+      </div>
+
+      <!-- ═══ Step 3: 注册成功 ═══ -->
+      <div class="reg-step" id="step3">
+        <div class="success-view">
+          <div class="success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h3>注册成功！</h3>
+          <p>已为手机号 <span class="success-phone" id="successPhone"></span> 创建账号<br>正在跳转，请稍候…</p>
+        </div>
+      </div>
+
+      <a class="back-link" id="backLink" href="index.html">← 返回智能体中心</a>
+    </div>
+
+    <footer class="panel-footer">
+      <div>高领智能体中心 · 锦天城（厦门）律师事务所</div>
+      <div>闽ICP备2021011252号-1 &nbsp;©&nbsp;2025</div>
+    </footer>
+  </section>
+</div>
+
+<!-- 协议弹窗 -->
+<div class="legal-modal" id="legalModal" role="dialog" aria-modal="true">
+  <div class="legal-dialog">
+    <div class="legal-header">
+      <h3 id="legalTitle">用户服务协议</h3>
+      <button class="legal-close" id="legalClose" type="button" aria-label="关闭">&times;</button>
+    </div>
+    <div class="legal-body" id="legalBody"></div>
+  </div>
+</div>
+
+<script>
+const base      = getAppBasePath();
+const homeUrl   = base + '/index.html';
+const params    = new URLSearchParams(location.search);
+const returnUrl = params.get('return') || homeUrl;
+
+document.getElementById('backLink').href = returnUrl.startsWith('/') ? returnUrl : homeUrl;
+document.getElementById('goLogin').href  = base + '/login.html' + (params.get('return') ? '?return=' + encodeURIComponent(params.get('return')) : '');
+
+let verifiedPhone = '';
+let verifiedToken = '';
+
+/* ── 步骤切换 ── */
+function goStep(n) {
+  document.querySelectorAll('.reg-step').forEach((el, i) => el.classList.toggle('active', i + 1 === n));
+  ['si1','si2','si3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'step-item' + (i + 1 === n ? ' active' : i + 1 < n ? ' done' : '');
+    if (i + 1 < n) el.querySelector('.step-dot').innerHTML = '&#10003;';
+  });
+}
+
+/* ── 倒计时 ── */
+let cdTimer = null;
+const sendBtn = document.getElementById('regSendBtn');
+
+function startCountdown() {
+  let left = 60;
+  sendBtn.disabled = true;
+  sendBtn.textContent = `${left}s 后重发`;
+  cdTimer = setInterval(() => {
+    left--;
+    sendBtn.textContent = left > 0 ? `${left}s 后重发` : '重新获取';
+    if (left <= 0) { clearInterval(cdTimer); sendBtn.disabled = false; }
+  }, 1000);
+}
+
+sendBtn.onclick = async () => {
+  const phone = document.getElementById('regPhone').value.trim();
+  if (!/^1[3-9]\d{9}$/.test(phone)) { showMsg('step1Msg', '请输入有效的大陆手机号'); return; }
+  sendBtn.disabled = true; sendBtn.textContent = '发送中…';
+  try {
+    const res = await apiFetch('/api/auth/send-sms', { method: 'POST', body: JSON.stringify({ phone }) });
+    if (!res.ok) { showMsg('step1Msg', (await res.json()).error || '发送失败'); sendBtn.disabled = false; sendBtn.textContent = '获取验证码'; return; }
+    startCountdown();
+    showMsg('step1Msg', '验证码已发送，请查收短信', 'ok');
+  } catch {
+    showMsg('step1Msg', '网络异常，请稍后重试');
+    sendBtn.disabled = false; sendBtn.textContent = '获取验证码';
+  }
+};
+
+/* ── Step 1 提交 ── */
+document.getElementById('step1Btn').onclick = async () => {
+  const phone = document.getElementById('regPhone').value.trim();
+  const code  = document.getElementById('regCode').value.trim();
+  const agree = document.getElementById('regAgree').checked;
+  if (!agree) { showMsg('step1Msg', '请先阅读并同意服务协议'); return; }
+  if (!/^1[3-9]\d{9}$/.test(phone)) { showMsg('step1Msg', '请输入有效的手机号'); return; }
+  if (!/^\d{6}$/.test(code)) { showMsg('step1Msg', '请输入 6 位验证码'); return; }
+
+  const btn = document.getElementById('step1Btn');
+  btn.disabled = true; btn.textContent = '验证中…';
+  try {
+    const res  = await apiFetch('/api/auth/verify-sms', { method: 'POST', body: JSON.stringify({ phone, code }) });
+    const data = await res.json();
+    if (!res.ok) { showMsg('step1Msg', data.error || '验证失败'); return; }
+    verifiedPhone = phone;
+    verifiedToken = data.token;
+    goStep(2);
+  } catch {
+    showMsg('step1Msg', '网络异常，请稍后重试');
+  } finally {
+    btn.disabled = false; btn.textContent = '下一步，验证手机';
+  }
+};
+
+/* ── Step 2 提交（含昵称更新） ── */
+async function completeRegistration() {
+  const nickName = document.getElementById('regNickname').value.trim();
+  const btn = document.getElementById('step2Btn');
+  btn.disabled = true; btn.textContent = '完成中…';
+  document.getElementById('step2Skip').disabled = true;
+  try {
+    if (nickName) {
+      await apiFetch('/api/auth/update-profile', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${verifiedToken}` },
+        body: JSON.stringify({ nickName }),
+      });
+    }
+    GoalinAuth.setToken(verifiedToken);
+    document.getElementById('successPhone').textContent = verifiedPhone;
+    goStep(3);
+    setTimeout(() => { location.href = returnUrl.startsWith('/') ? returnUrl : homeUrl; }, 2000);
+  } catch (e) {
+    showMsg('step2Msg', e.message || '提交失败，请重试');
+    btn.disabled = false; btn.textContent = '完成注册';
+    document.getElementById('step2Skip').disabled = false;
+  }
+}
+
+document.getElementById('step2Btn').onclick  = completeRegistration;
+document.getElementById('step2Skip').onclick = () => {
+  GoalinAuth.setToken(verifiedToken);
+  document.getElementById('successPhone').textContent = verifiedPhone;
+  goStep(3);
+  setTimeout(() => { location.href = returnUrl.startsWith('/') ? returnUrl : homeUrl; }, 2000);
+};
+
+/* ── 已登录则直接跳转 ── */
+GoalinAuth.fetchMe().then(u => {
+  if (u) location.href = returnUrl.startsWith('/') ? returnUrl : homeUrl;
+});
+
+/* ── 工具函数 ── */
+function showMsg(id, text, type = 'err') {
+  const el = document.getElementById(id);
+  el.textContent = text; el.className = `msg ${type}`;
+  if (type === 'ok') setTimeout(() => { if (el.textContent === text) el.textContent = ''; }, 4000);
+}
+function apiFetch(path, opts = {}) {
+  return fetch(getAppBasePath() + path, {
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    ...opts,
+  });
+}
+
+/* ── 协议弹窗 ── */
+const legalModal = document.getElementById('legalModal');
+function openLegal(type) {
+  const docs = window.GoalinLegalDocs || {};
+  document.getElementById('legalTitle').textContent = type === 'privacy' ? (docs.privacyTitle || '隐私政策') : (docs.termsTitle || '用户服务协议');
+  document.getElementById('legalBody').textContent  = type === 'privacy' ? (docs.privacy || '') : (docs.terms || '');
+  legalModal.classList.add('open');
+  document.getElementById('legalBody').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+}
+function closeLegal() { legalModal.classList.remove('open'); document.body.style.overflow = ''; }
+document.getElementById('linkTerms').addEventListener('click',   e => { e.preventDefault(); openLegal('terms'); });
+document.getElementById('linkPrivacy').addEventListener('click', e => { e.preventDefault(); openLegal('privacy'); });
+document.getElementById('legalClose').onclick = closeLegal;
+legalModal.addEventListener('click', e => { if (e.target === legalModal) closeLegal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && legalModal.classList.contains('open')) closeLegal(); });
+</script>
+</body>
+</html>
