@@ -275,7 +275,16 @@
       height: 1px; background: var(--bord);
     }
 
-    /* 返回链接 */
+    /* 顶部返回按钮 */
+    .back-top {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--sub); text-decoration: none;
+      margin-bottom: 28px; transition: color 0.2s;
+    }
+    .back-top:hover { color: var(--c); }
+    .back-top svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* 底部返回链接 */
     .back-link {
       display: block; margin-top: 24px;
       text-align: center; font-size: 13px;
@@ -358,6 +367,14 @@
         <img src="assets/goalin-logo.png" alt="Goalin Legal" />
         <div class="panel-brand-name">高领智能体中心</div>
       </div>
+
+      <!-- 返回智能体中心 -->
+      <a class="back-top" id="backTopLink" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        返回智能体中心
+      </a>
 
       <!-- Tab 切换 -->
       <div class="auth-tabs" role="tablist">
@@ -457,7 +474,9 @@ const homeUrl   = base + '/index.html';
 const params    = new URLSearchParams(location.search);
 const returnUrl = params.get('return') || homeUrl;
 
-document.getElementById('backLink').href  = returnUrl.startsWith('/') ? returnUrl : homeUrl;
+const backHref = returnUrl.startsWith('/') ? returnUrl : homeUrl;
+document.getElementById('backLink').href    = backHref;
+document.getElementById('backTopLink').href = backHref;
 document.getElementById('goRegister').href = base + '/register.html';
 
 /* ── Tab 切换 ── */
