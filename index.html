@@ -88,6 +88,15 @@
       box-shadow: 0 0 16px rgba(2,187,199,0.35);
     }
     .nav-btn-primary:hover { background: var(--cd); }
+    .nav-user {
+      display: none; align-items: center; gap: 8px;
+      font-size: 13px; color: rgba(255,255,255,0.55);
+    }
+    .nav-user.visible { display: flex; }
+    .nav-user-name {
+      max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      color: rgba(255,255,255,0.80);
+    }
 
     /* ══════════════════════════
        Hero 区域
@@ -911,6 +920,10 @@
     <a class="nav-link" href="#" data-view="about" id="navAbout">关于我们</a>
   </div>
   <div class="nav-right">
+    <div class="nav-user" id="navUser">
+      <span class="nav-user-name" id="navUserName"></span>
+      <button class="nav-btn nav-btn-ghost" id="navLogoutBtn" type="button" style="padding:7px 14px;font-size:13px;">退出</button>
+    </div>
     <button class="nav-btn nav-btn-ghost" id="navLoginBtn" type="button">登录</button>
     <button class="nav-btn nav-btn-primary" id="navUseBtn" type="button">立即使用</button>
   </div>
@@ -1416,17 +1429,37 @@ document.getElementById('honorAccordion')?.addEventListener('click', e => {
 });
 
 /* 关于页目录锚点（大屏） */
+function updateNavAuth(user) {
+  const loginBtn  = document.getElementById('navLoginBtn');
+  const logoutBtn = document.getElementById('navLogoutBtn');
+  const userBox   = document.getElementById('navUser');
+  const userName  = document.getElementById('navUserName');
+  if (user) {
+    loginBtn.style.display  = 'none';
+    userBox.classList.add('visible');
+    userName.textContent = user.nickName || user.phone || user.username || '已登录';
+  } else {
+    loginBtn.style.display  = '';
+    userBox.classList.remove('visible');
+  }
+}
+
 document.getElementById('navLoginBtn')?.addEventListener('click', () => {
-  if (window.GoalinAuth?.isLoggedIn?.()) GoalinAuth.logout();
   location.href = GoalinAuth.loginPageUrl();
 });
+document.getElementById('navLogoutBtn')?.addEventListener('click', () => {
+  GoalinAuth.logout();
+  updateNavAuth(null);
+});
 document.getElementById('navUseBtn')?.addEventListener('click', () => {
-  document.getElementById('viewHome')?.scrollIntoView({ behavior: 'smooth' });
+  if (GoalinAuth.isLoggedIn()) {
+    document.getElementById('viewHome')?.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    location.href = GoalinAuth.loginPageUrl();
+  }
 });
-GoalinAuth.fetchMe().then(u => {
-  const btn = document.getElementById('navLoginBtn');
-  if (btn && u) btn.textContent = '退出登录';
-});
+
+GoalinAuth.fetchMe().then(u => updateNavAuth(u));
 
 document.querySelectorAll('.about-toc a[data-toc]').forEach(a => {
   a.addEventListener('click', e => {
