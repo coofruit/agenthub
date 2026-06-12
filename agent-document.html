@@ -1330,7 +1330,7 @@ const HIAGENT_ORIGIN = 'http://hiagent.aigc.smdata.com.cn';
 function isLocalDemoHost() {
   const h = location.hostname;
   return h === 'localhost' || h === '127.0.0.1'
-    || h === 'goinlegal.com' || h === 'www.goinlegal.com';
+    || (typeof isProdHost === 'function' && isProdHost());
 }
 
 /** 本地 npm start 时走 dev-server 代理，避免浏览器 CORS 拦截 HiAgent */
