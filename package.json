@@ -11,6 +11,7 @@
   "dependencies": {
     "@cloudbase/node-sdk": "^3.18.1",
     "bcryptjs": "^3.0.3",
+    "docx": "^8.5.0",
     "iconv-lite": "^0.6.3",
     "jsonwebtoken": "^9.0.3",
     "mammoth": "^1.9.0",

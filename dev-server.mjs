@@ -67,6 +67,18 @@ async function proxyToHiAgent(req, res) {
     console.log(`[proxy] UploadRaw → ${targetUrl} (${body?.length ?? 0} bytes)`);
   }
 
+  if (req.url.includes('/chat_query_v2') && body?.length) {
+    try {
+      const payload = JSON.parse(body.toString('utf8'));
+      const files = payload.Files || payload.QueryExtends?.Files;
+      const names = Array.isArray(files) ? files.map(f => f?.Name || f?.name || '?') : [];
+      console.log(
+        `[proxy] chat_query_v2 Query="${String(payload.Query || '').slice(0, 40)}" Files=${names.length}`,
+        names.length ? names.join(', ') : '(none)'
+      );
+    } catch {}
+  }
+
   let upstream;
   try {
     upstream = await fetch(targetUrl, { method: req.method, headers, body });
@@ -111,6 +123,15 @@ const fileExtract = (() => {
   }
 })();
 
+const docxExport = (() => {
+  try {
+    return require('./lib/docx-export.cjs');
+  } catch (e) {
+    console.warn('[dev-server] Word 导出模块加载失败:', e.message);
+    return null;
+  }
+})();
+
 async function handleExtractFile(req, res) {
   try {
     const raw = await readBody(req);
@@ -138,6 +159,37 @@ async function handleExtractFile(req, res) {
       extracted: !!(text && text.length >= 8),
       ext,
     }));
+  } catch (e) {
+    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders() });
+    res.end(JSON.stringify({ error: String(e.message || e) }));
+  }
+}
+
+async function handleExportDocx(req, res) {
+  try {
+    const raw = await readBody(req);
+    const body = JSON.parse(raw.toString('utf8') || '{}');
+    if (!docxExport?.buildDocxBuffer) {
+      res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders() });
+      res.end(JSON.stringify({ error: 'Word 导出模块未加载，请执行 npm install 后重启' }));
+      return;
+    }
+    const buffer = await docxExport.buildDocxBuffer({
+      title: body.title || '智能体回复',
+      query: body.query || '',
+      processText: body.processText || '',
+      mainText: body.mainText || '',
+      dualOpinion: body.dualOpinion === true,
+    });
+    const safeName = String(body.fileName || '债权人资格审查意见.docx')
+      .replace(/[^\w\u4e00-\u9fa5（）().·-]+/g, '_');
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(safeName)}`,
+      'Content-Length': String(buffer.length),
+      ...corsHeaders(),
+    });
+    res.end(buffer);
   } catch (e) {
     res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders() });
     res.end(JSON.stringify({ error: String(e.message || e) }));
@@ -209,6 +261,11 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (req.url.split('?')[0] === '/api/local/export-docx' && req.method === 'POST') {
+    await handleExportDocx(req, res);
+    return;
+  }
+
   serveStatic(req, res);
 });
 
@@ -231,9 +288,11 @@ server.listen(PORT, HOST, () => {
   console.log(`  执行文书起草: http://${HOST}:${PORT}/agent-document.html`);
   console.log(`  国企投资合规: http://${HOST}:${PORT}/agent-compliance.html`);
   console.log(`  税务咨询:     http://${HOST}:${PORT}/agent-tax.html`);
+  console.log(`  破产债权审查: http://${HOST}:${PORT}/agent-bankruptcy.html`);
   console.log(`  对话 API 代理: http://${HOST}:${PORT}/api/proxy/api/v1/ → ${UPSTREAM}/api/proxy/api/v1/`);
   console.log(`  上传代理:     http://${HOST}:${PORT}/api/proxy/upload/v1/ → ${UPSTREAM}/api/proxy/upload/v1/`);
   console.log(`  附件解析:     http://${HOST}:${PORT}/api/local/extract-file (项目内 lib/file-extract.cjs)`);
+  console.log(`  Word 导出:    http://${HOST}:${PORT}/api/local/export-docx`);
   console.log(`  用户认证:     http://${HOST}:${PORT}/api/auth/`);
   console.log(`  管理接口:     http://${HOST}:${PORT}/api/admin/ (admin)`);
   if (fileExtract?.getExtractCapabilities) {

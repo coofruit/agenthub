@@ -955,6 +955,7 @@
     <button class="tab" data-tag="税务"><span class="tab-icon">🧾</span>税务</button>
     <button class="tab" data-tag="助手"><span class="tab-icon">📋</span>助手</button>
     <button class="tab" data-tag="文书"><span class="tab-icon">📝</span>文书</button>
+    <button class="tab" data-tag="破产"><span class="tab-icon">🏦</span>破产</button>
   </div>
 
   <div class="result-row">
@@ -1243,6 +1244,11 @@ const agents = [
     url:"agent-client.html",
     desc:"自动提炼客户沟通要点，结构化整理需求清单、优先级与跟进计划，让每一条诉求都有迹可循。",
     features:["自动提炼沟通要点","结构化需求清单","优先级与跟进计划"] },
+  { id:7, name:"债权人资格审查及意见生成", icon:"🏦", tag:"破产", status:"online",
+    subtitle:"面向破产管理人团队",
+    url:"agent-bankruptcy.html",
+    desc:"上传债权人申报材料，智能完成主体资格与债权依据审查，分段展示分析过程与正式意见，并支持一键导出 Word 文档。",
+    features:["申报材料完整性审查","债权主体与金额核验","审查意见 Word 导出"] },
   { id:6, name:"执行文书起草",     icon:"📝", tag:"文书", status:"online",
     subtitle:"面向诉讼与执行团队",
     url:"agent-document.html",
