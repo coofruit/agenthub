@@ -1,0 +1,84 @@
+{
+  "nextId": 107,
+  "agents": [
+    {
+      "id": 104,
+      "slug": "agent-d51n875590",
+      "name": "娱乐法咨询",
+      "icon": "🤖",
+      "tag": "民商事",
+      "status": "online",
+      "subtitle": "智能法律问答助手",
+      "url": "agent-d51n875590.html",
+      "desc": "娱乐法智能顾问，深度覆盖影视、音乐、综艺及艺人经纪全产业链。",
+      "features": [
+        "合同审核与版权合规",
+        "产业链争议研判",
+        "艺人经纪法律支持"
+      ],
+      "supportsFileUpload": false,
+      "welcomeTitle": "您好，我是娱乐法咨询助手",
+      "welcomeDesc": "娱乐法智能顾问，深度覆盖影视、音乐、综艺及艺人经纪全产业链。提供从合同审核、版权合规到争议解决的全链路法律支持",
+      "inputPlaceholder": "向娱乐法咨询提问…",
+      "suggestions": [],
+      "appId": "d6o00eelvnd51n875590",
+      "apiKey": "d8t063d4shhbo6ej2d7g",
+      "apiKeyHint": "d8t0****",
+      "publishedAt": "2026-06-24T03:31:33.824Z",
+      "source": "published",
+      "updatedAt": "2026-06-25T07:59:29.956Z"
+    },
+    {
+      "id": 105,
+      "slug": "agent-hbo6ej2vig",
+      "name": "劳动法律咨询",
+      "icon": "📒",
+      "tag": "合规",
+      "status": "beta",
+      "subtitle": "劳动法相关咨询",
+      "url": "agent-hbo6ej2vig.html",
+      "desc": "劳动法律咨询 — 由高领智能体中心提供的智能法律助手",
+      "features": [
+        "劳动合同风险审查",
+        "工伤认定与赔偿分析",
+        "劳动争议处理策略"
+      ],
+      "supportsFileUpload": true,
+      "welcomeTitle": "您好，我是劳动法律咨询助手",
+      "welcomeDesc": "劳动法律咨询 — 由高领智能体中心提供的智能法律助手",
+      "inputPlaceholder": "描述您的需求与背景…",
+      "suggestions": [],
+      "appId": "d8uc6e54shhbo6ej2vig",
+      "apiKey": "d8ud5st4shh47808opr0",
+      "apiKeyHint": "d8ud****",
+      "publishedAt": "2026-06-25T08:06:30.073Z",
+      "source": "published"
+    },
+    {
+      "id": 106,
+      "slug": "agent-h6of5k8vk0",
+      "name": "招投标合规咨询",
+      "icon": "📋",
+      "tag": "合规",
+      "status": "beta",
+      "subtitle": "招投标合规咨询助手",
+      "url": "agent-h6of5k8vk0.html",
+      "desc": "招投标合规咨询 — 由高领智能体中心提供的智能法律助手",
+      "features": [
+        "对外投资合规审查",
+        "监管政策实时解读",
+        "交易结构法律分析"
+      ],
+      "supportsFileUpload": true,
+      "welcomeTitle": "您好，我是招投标合规咨询助手",
+      "welcomeDesc": "招投标合规咨询 — 由高领智能体中心提供的智能法律助手",
+      "inputPlaceholder": "描述您的需求与背景…",
+      "suggestions": [],
+      "appId": "d8tkm954shh6of5k8vk0",
+      "apiKey": "d8ud6a54shh6of5k9bi0",
+      "apiKeyHint": "d8ud****",
+      "publishedAt": "2026-06-25T08:09:26.768Z",
+      "source": "published"
+    }
+  ]
+}

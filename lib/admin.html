@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理后台 · 高领智能体中心</title>
+  <script src="assets/app-base.js"></script>
+  <script src="assets/auth.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --c:#02BBC7; --navy:#0f1923; --bg:#f4f6f8; --text:#1a2332; --sub:#5a6a7a; --bord:#e2e8ed; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; min-height: 100vh; }
+    header {
+      background: var(--navy); color: #fff; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 18px; }
+    header .actions { display: flex; gap: 12px; align-items: center; font-size: 14px; }
+    header button, header a {
+      border: 1px solid rgba(255,255,255,.2); background: transparent; color: #fff; padding: 8px 14px;
+      border-radius: 8px; text-decoration: none; cursor: pointer; font-size: 13px;
+    }
+    main { max-width: 1100px; margin: 24px auto; padding: 0 20px 40px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+    .stat .n { font-size: 28px; font-weight: 700; color: var(--c); }
+    .stat .l { font-size: 13px; color: var(--sub); margin-top: 4px; }
+    .panel { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.04); overflow: hidden; }
+    .panel h2 { padding: 16px 20px; font-size: 16px; border-bottom: 1px solid var(--bord); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f0f2f5; }
+    th { color: var(--sub); font-weight: 600; background: #fafbfc; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    .tag.admin { background: #fff3cd; color: #856404; }
+    .tag.user { background: #e8f8fa; color: #0b7285; }
+    .tag.active { background: #d4edda; color: #155724; }
+    .tag.disabled { background: #f8d7da; color: #721c24; }
+    .btn-sm {
+      border: none; background: var(--c); color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    }
+    .btn-sm.gray { background: #95a5a6; }
+    .login-box {
+      max-width: 400px; margin: 80px auto; background: #fff; padding: 28px; border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.08);
+    }
+    .login-box h2 { margin-bottom: 16px; }
+    .login-box input { width: 100%; padding: 11px 12px; margin: 8px 0 14px; border: 1px solid var(--bord); border-radius: 8px; }
+    .login-box button { width: 100%; padding: 11px; border: none; border-radius: 8px; background: var(--c); color: #fff; font-weight: 700; cursor: pointer; }
+    .err { color: #c0392b; font-size: 13px; min-height: 18px; margin-top: 8px; }
+    #app { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loginView" class="login-box">
+    <h2>管理员登录</h2>
+    <p style="color:var(--sub);font-size:13px;margin-bottom:12px;">使用 root 管理员账号登录，用户数据来自 CloudBase 手机号注册体系</p>
+    <input id="adminUser" placeholder="管理员用户名" value="root" />
+    <input id="adminPass" type="password" placeholder="密码" />
+    <button id="adminLoginBtn" type="button">登录管理后台</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+
+  <div id="app">
+    <header>
+      <h1>GoalinWeb 管理后台</h1>
+      <div class="actions">
+        <span id="adminName"></span>
+        <a id="homeLink" href="index.html">返回前台</a>
+        <button id="logoutBtn" type="button">退出</button>
+      </div>
+    </header>
+    <main>
+      <div class="stats" id="stats"></div>
+      <div class="panel">
+        <h2>用户列表（CloudBase 手机号用户）</h2>
+        <table>
+          <thead><tr><th>手机号</th><th>昵称</th><th>配额</th><th>状态</th><th>注册时间</th><th>最后登录</th><th>操作</th></tr></thead>
+          <tbody id="userRows"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const base = getAppBasePath();
+    document.getElementById('homeLink').href = base + '/index.html';
+
+    function adminApi(path, opts = {}) {
+      const headers = Object.assign({}, GoalinAuth.authHeaders(), opts.headers || {});
+      return fetch(`${location.origin}${base}/api/admin${path}`, Object.assign({}, opts, { headers }));
+    }
+
+    async function requireAdmin() {
+      const me = await GoalinAuth.fetchMe();
+      if (!me || me.role !== 'admin') return null;
+      return me;
+    }
+
+    async function loadDashboard() {
+      const [statsRes, usersRes] = await Promise.all([
+        adminApi('/stats'),
+        adminApi('/users'),
+      ]);
+      if (!statsRes.ok || !usersRes.ok) throw new Error('加载失败，请重新登录');
+      const statsData = await statsRes.json();
+      const usersData = await usersRes.json();
+      const s = statsData.stats;
+      document.getElementById('stats').innerHTML = `
+        <div class="stat"><div class="n">${s.totalUsers}</div><div class="l">注册用户（CloudBase）</div></div>
+        <div class="stat"><div class="n">${s.activeUsers}</div><div class="l">活跃用户</div></div>
+        <div class="stat"><div class="n">${s.totalChats}</div><div class="l">累计对话记录</div></div>
+        <div class="stat"><div class="n">${s.todayChats}</div><div class="l">今日对话</div></div>
+      `;
+      const fmtTime = (t) => t ? String(t).replace('T', ' ').slice(0, 19) : '—';
+      const tbody = document.getElementById('userRows');
+      tbody.innerHTML = '';
+      for (const u of usersData.users) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.phone || '—'}</td>
+          <td>${u.nickName || '—'}</td>
+          <td>${u.usedQuota ?? 0} / ${u.totalQuota ?? 10}</td>
+          <td><span class="tag ${u.status}">${u.status === 'active' ? '正常' : '已禁用'}</span></td>
+          <td>${fmtTime(u.createTime)}</td>
+          <td>${fmtTime(u.lastLogin)}</td>
+          <td><button class="btn-sm ${u.status === 'active' ? 'gray' : ''}" data-id="${u.id}" data-status="${u.status === 'active' ? 'disabled' : 'active'}">${u.status === 'active' ? '禁用' : '启用'}</button></td>
+        `;
+        tbody.appendChild(tr);
+      }
+      tbody.querySelectorAll('button[data-id]').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.dataset.id;
+          const status = btn.dataset.status;
+          const res = await adminApi(`/users/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status }),
+          });
+          const data = await res.json();
+          if (!res.ok) { alert(data.error || '操作失败'); return; }
+          loadDashboard();
+        };
+      });
+    }
+
+    function showApp(user) {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('adminName').textContent = user.username;
+      loadDashboard().catch(e => alert(e.message));
+    }
+
+    document.getElementById('adminLoginBtn').onclick = async () => {
+      document.getElementById('loginErr').textContent = '';
+      try {
+        const user = await GoalinAuth.login(
+          document.getElementById('adminUser').value.trim(),
+          document.getElementById('adminPass').value,
+        );
+        if (user.role !== 'admin') {
+          GoalinAuth.logout();
+          throw new Error('该账号不是管理员');
+        }
+        showApp(user);
+      } catch (e) {
+        document.getElementById('loginErr').textContent = e.message || '登录失败';
+      }
+    };
+
+    document.getElementById('logoutBtn').onclick = () => {
+      GoalinAuth.logout();
+      location.reload();
+    };
+
+    requireAdmin().then(u => { if (u) showApp(u); });
+  </script>
+</body>
+</html>

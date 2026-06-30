@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理后台 · 高领智能体中心</title>
+  <script src="assets/app-base.js"></script>
+  <script src="assets/auth.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --c:#02BBC7; --navy:#0f1923; --bg:#f4f6f8; --text:#1a2332; --sub:#5a6a7a; --bord:#e2e8ed; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; min-height: 100vh; }
+    header {
+      background: var(--navy); color: #fff; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 18px; }
+    header .actions { display: flex; gap: 12px; align-items: center; font-size: 14px; }
+    header button, header a {
+      border: 1px solid rgba(255,255,255,.2); background: transparent; color: #fff; padding: 8px 14px;
+      border-radius: 8px; text-decoration: none; cursor: pointer; font-size: 13px;
+    }
+    main { max-width: 1100px; margin: 24px auto; padding: 0 20px 40px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+    .stat .n { font-size: 28px; font-weight: 700; color: var(--c); }
+    .stat .l { font-size: 13px; color: var(--sub); margin-top: 4px; }
+    .panel { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.04); overflow: hidden; }
+    .panel h2 { padding: 16px 20px; font-size: 16px; border-bottom: 1px solid var(--bord); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f0f2f5; }
+    th { color: var(--sub); font-weight: 600; background: #fafbfc; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+    .tag.admin { background: #fff3cd; color: #856404; }
+    .tag.user { background: #e8f8fa; color: #0b7285; }
+    .tag.active { background: #d4edda; color: #155724; }
+    .tag.disabled { background: #f8d7da; color: #721c24; }
+    .btn-sm {
+      border: none; background: var(--c); color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    }
+    .btn-sm.gray { background: #95a5a6; }
+    .btn-sm.danger { background: #e74c3c; }
+    .btn-sm.outline { background: #fff; color: var(--c); border: 1px solid var(--c); }
+    .panel-head {
+      padding: 16px 20px; font-size: 16px; border-bottom: 1px solid var(--bord);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .panel-head h2 { padding: 0; border: none; font-size: 16px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; padding: 16px 20px 0; }
+    .form-field label { display: block; font-size: 12px; color: var(--sub); margin-bottom: 6px; }
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--bord); border-radius: 8px; font-size: 14px;
+    }
+    .form-field textarea { min-height: 72px; resize: vertical; }
+    .form-actions {
+      padding: 16px 20px 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      flex-shrink: 0; background: #fff; border-top: 1px solid var(--bord);
+    }
+    .form-msg { font-size: 13px; color: var(--sub); }
+    .form-msg.ok { color: #1e8449; }
+    .form-msg.err { color: #c0392b; }
+    .check-row { display: flex; align-items: flex-start; gap: 8px; padding: 10px 0 0; font-size: 14px; line-height: 1.5; }
+    .check-row input { margin-top: 3px; flex-shrink: 0; }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15,25,35,.45);
+      display: none; z-index: 1000; overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    .modal-overlay.open {
+      display: flex; align-items: flex-start; justify-content: center;
+    }
+    .modal {
+      width: min(600px, 100%); background: #fff; border-radius: 14px;
+      box-shadow: 0 16px 48px rgba(0,0,0,.18);
+      display: flex; flex-direction: column;
+      max-height: calc(100vh - 32px);
+      max-height: calc(100dvh - 32px);
+      margin: auto 0;
+      overflow: hidden;
+    }
+    .modal > header {
+      flex-shrink: 0; padding: 16px 20px; border-bottom: 1px solid var(--bord);
+      display: flex; justify-content: space-between; align-items: center;
+      background: #fff; color: var(--text);
+    }
+    .modal > header h3 { font-size: 16px; font-weight: 600; }
+    .modal > header button {
+      border: none; background: transparent; font-size: 24px; line-height: 1;
+      cursor: pointer; color: var(--sub); padding: 0 4px;
+    }
+    .modal-body {
+      flex: 1 1 auto; overflow-y: auto; min-height: 0;
+      -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    }
+    .modal-body .form-grid { padding-bottom: 4px; }
+    .field-hint { font-size: 11px; color: var(--sub); margin-top: 4px; }
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .agent-table-wrap { overflow-x: auto; }
+    .link-btn { color: var(--c); text-decoration: none; font-size: 13px; }
+    .login-box {
+      max-width: 400px; margin: 80px auto; background: #fff; padding: 28px; border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.08);
+    }
+    .login-box h2 { margin-bottom: 16px; }
+    .login-box input { width: 100%; padding: 11px 12px; margin: 8px 0 14px; border: 1px solid var(--bord); border-radius: 8px; }
+    .login-box button { width: 100%; padding: 11px; border: none; border-radius: 8px; background: var(--c); color: #fff; font-weight: 700; cursor: pointer; }
+    .err { color: #c0392b; font-size: 13px; min-height: 18px; margin-top: 8px; }
+    #app { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loginView" class="login-box">
+    <h2>管理员登录</h2>
+    <p style="color:var(--sub);font-size:13px;margin-bottom:12px;">使用 root 管理员账号登录，用户数据来自 CloudBase 手机号注册体系</p>
+    <input id="adminUser" placeholder="管理员用户名" value="root" />
+    <input id="adminPass" type="password" placeholder="密码" />
+    <button id="adminLoginBtn" type="button">登录管理后台</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+
+  <div id="app">
+    <header>
+      <h1>GoalinWeb 管理后台</h1>
+      <div class="actions">
+        <span id="adminName"></span>
+        <a id="homeLink" href="index.html">返回前台</a>
+        <button id="logoutBtn" type="button">退出</button>
+      </div>
+    </header>
+    <main>
+      <div class="stats" id="stats"></div>
+
+      <div class="panel" style="margin-bottom:24px;">
+        <div class="panel-head">
+          <h2>智能体上架</h2>
+          <button class="btn-sm" id="openPublishBtn" type="button">上架新智能体</button>
+        </div>
+        <p style="padding:0 20px 16px;color:var(--sub);font-size:13px;">
+          填写 HiAgent 的 App ID 与 API 密钥后，系统将自动生成交互页面并展示在智能体中心首页。
+        </p>
+        <div class="agent-table-wrap">
+        <table>
+          <thead><tr><th>名称</th><th>分类</th><th>文件上传</th><th>状态</th><th>来源</th><th>页面</th><th>上架时间</th><th>操作</th></tr></thead>
+          <tbody id="agentRows"><tr><td colspan="8" style="color:var(--sub);">加载中…</td></tr></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>用户列表（CloudBase 手机号用户）</h2>
+        <table>
+          <thead><tr><th>手机号</th><th>昵称</th><th>配额</th><th>状态</th><th>注册时间</th><th>最后登录</th><th>操作</th></tr></thead>
+          <tbody id="userRows"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="publishOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-labelledby="publishTitle" aria-modal="true">
+      <header>
+        <h3 id="publishTitle">上架智能体</h3>
+        <button type="button" id="closePublishBtn" aria-label="关闭">×</button>
+      </header>
+      <div class="modal-body">
+        <input type="hidden" id="pubEditSlug" value="" />
+        <div class="form-grid">
+          <div class="form-field" style="grid-column:1/-1;">
+            <label for="pubName">智能体名称 *</label>
+            <input id="pubName" placeholder="例如：劳动纠纷咨询" />
+          </div>
+          <div class="form-field">
+            <label for="pubAppId">App ID *</label>
+            <input id="pubAppId" placeholder="HiAgent App ID" />
+          </div>
+          <div class="form-field">
+            <label for="pubApiKey">API 密钥 <span id="pubApiKeyReq">*</span></label>
+            <input id="pubApiKey" type="password" placeholder="HiAgent Apikey" autocomplete="new-password" />
+            <div class="field-hint" id="pubApiKeyHint" hidden>留空则保持原密钥不变</div>
+          </div>
+          <div class="form-field">
+            <label for="pubIcon">图标（Emoji）</label>
+            <input id="pubIcon" value="🤖" maxlength="4" />
+          </div>
+          <div class="form-field">
+            <label for="pubTag">分类标签</label>
+            <select id="pubTag">
+              <option value="助手">助手</option>
+              <option value="民商事">民商事</option>
+              <option value="合规">合规</option>
+              <option value="税务">税务</option>
+              <option value="投资">投资</option>
+              <option value="文书">文书</option>
+              <option value="破产">破产</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="pubStatus">发布状态</label>
+            <select id="pubStatus">
+              <option value="online">正式上线</option>
+              <option value="beta">内测</option>
+            </select>
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label for="pubSubtitle">副标题</label>
+            <input id="pubSubtitle" placeholder="面向律师团队" value="智能法律助手" />
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label for="pubDesc">简介（首页卡片 + 对话页欢迎语）</label>
+            <textarea id="pubDesc" placeholder="例如：专注劳动纠纷、工伤赔偿等问题，提供专业分析与策略建议。"></textarea>
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label for="pubWelcomeTitle">欢迎标题（留空则自动生成）</label>
+            <input id="pubWelcomeTitle" placeholder="例如：您好，我是劳动纠纷咨询助手" />
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label for="pubInputPlaceholder">输入框提示（留空则自动生成）</label>
+            <input id="pubInputPlaceholder" placeholder="例如：描述案情背景与具体问题…" />
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label for="pubSuggestions">推荐问题（每行一个，最多 4 条，留空则不展示）</label>
+            <textarea id="pubSuggestions" placeholder="例如：&#10;劳动合同解除有哪些注意事项？&#10;工伤认定需要哪些材料？"></textarea>
+          </div>
+        </div>
+        <div style="padding:0 20px;">
+          <label class="check-row">
+            <input type="checkbox" id="pubUpload" />
+            支持文件上传（使用执行文书起草模板：native 上传 + inline 回退）
+          </label>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" id="confirmPublishBtn" type="button">确认上架</button>
+        <button class="btn-sm gray" id="cancelPublishBtn" type="button">取消</button>
+        <span class="form-msg" id="publishMsg"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const base = getAppBasePath();
+    document.getElementById('homeLink').href = base + '/index.html';
+
+    function adminApi(path, opts = {}) {
+      const headers = Object.assign({}, GoalinAuth.authHeaders(), opts.headers || {});
+      return fetch(`${location.origin}${base}/api/admin${path}`, Object.assign({}, opts, { headers }));
+    }
+
+    async function requireAdmin() {
+      const me = await GoalinAuth.fetchMe();
+      if (!me || me.role !== 'admin') return null;
+      return me;
+    }
+
+    const publishedAgentMap = new Map();
+
+    function resetPublishForm() {
+      document.getElementById('pubEditSlug').value = '';
+      document.getElementById('pubName').value = '';
+      document.getElementById('pubAppId').value = '';
+      document.getElementById('pubApiKey').value = '';
+      document.getElementById('pubIcon').value = '🤖';
+      document.getElementById('pubTag').value = '助手';
+      document.getElementById('pubStatus').value = 'online';
+      document.getElementById('pubSubtitle').value = '智能法律助手';
+      document.getElementById('pubDesc').value = '';
+      document.getElementById('pubWelcomeTitle').value = '';
+      document.getElementById('pubInputPlaceholder').value = '';
+      document.getElementById('pubSuggestions').value = '';
+      document.getElementById('pubUpload').checked = false;
+      document.getElementById('pubAppId').readOnly = false;
+      document.getElementById('pubApiKey').required = true;
+      document.getElementById('pubApiKeyReq').textContent = '*';
+      document.getElementById('pubApiKeyHint').hidden = true;
+      document.getElementById('pubApiKey').placeholder = 'HiAgent Apikey';
+      document.getElementById('publishTitle').textContent = '上架智能体';
+      document.getElementById('confirmPublishBtn').textContent = '确认上架';
+    }
+
+    function fillPublishForm(agent) {
+      document.getElementById('pubEditSlug').value = agent.slug || '';
+      document.getElementById('pubName').value = agent.name || '';
+      document.getElementById('pubAppId').value = agent.appId || '';
+      document.getElementById('pubApiKey').value = '';
+      document.getElementById('pubIcon').value = agent.icon || '🤖';
+      document.getElementById('pubTag').value = agent.tag || '助手';
+      document.getElementById('pubStatus').value = agent.status || 'online';
+      document.getElementById('pubSubtitle').value = agent.subtitle || '';
+      document.getElementById('pubDesc').value = agent.desc || '';
+      document.getElementById('pubWelcomeTitle').value = agent.welcomeTitle || '';
+      document.getElementById('pubInputPlaceholder').value = agent.inputPlaceholder || '';
+      document.getElementById('pubSuggestions').value = Array.isArray(agent.suggestions)
+        ? agent.suggestions.join('\n') : '';
+      document.getElementById('pubUpload').checked = !!agent.supportsFileUpload;
+      document.getElementById('pubAppId').readOnly = true;
+      document.getElementById('pubApiKey').required = false;
+      document.getElementById('pubApiKeyReq').textContent = '';
+      document.getElementById('pubApiKeyHint').hidden = false;
+      document.getElementById('pubApiKey').placeholder = agent.apiKeyHint
+        ? `当前：${agent.apiKeyHint}，留空不变` : '留空则保持原密钥';
+      document.getElementById('publishTitle').textContent = '修改智能体';
+      document.getElementById('confirmPublishBtn').textContent = '保存修改';
+    }
+
+    function collectPublishPayload() {
+      return {
+        name: document.getElementById('pubName').value.trim(),
+        appId: document.getElementById('pubAppId').value.trim(),
+        apiKey: document.getElementById('pubApiKey').value.trim(),
+        icon: document.getElementById('pubIcon').value.trim() || '🤖',
+        tag: document.getElementById('pubTag').value,
+        status: document.getElementById('pubStatus').value,
+        subtitle: document.getElementById('pubSubtitle').value.trim(),
+        desc: document.getElementById('pubDesc').value.trim(),
+        welcomeTitle: document.getElementById('pubWelcomeTitle').value.trim(),
+        inputPlaceholder: document.getElementById('pubInputPlaceholder').value.trim(),
+        suggestions: document.getElementById('pubSuggestions').value.trim(),
+        supportsFileUpload: document.getElementById('pubUpload').checked,
+      };
+    }
+
+    async function loadPublishedAgents() {
+      const tbody = document.getElementById('agentRows');
+      try {
+        const res = await adminApi('/agents');
+        if (res.status === 403) {
+          tbody.innerHTML = '<tr><td colspan="8" style="color:var(--sub);">需要管理员权限</td></tr>';
+          return;
+        }
+        if (!res.ok) {
+          tbody.innerHTML = '<tr><td colspan="8" style="color:#c0392b;">智能体列表加载失败，请刷新页面或联系管理员重启服务</td></tr>';
+          return;
+        }
+        const data = await res.json();
+        tbody.innerHTML = '';
+        if (!data.agents?.length) {
+          tbody.innerHTML = '<tr><td colspan="8" style="color:var(--sub);">暂无智能体</td></tr>';
+          return;
+        }
+        const fmtTime = (a) => {
+          if (a.source === 'builtin') return '内置';
+          return a.publishedAt ? String(a.publishedAt).replace('T', ' ').slice(0, 19) : '—';
+        };
+        const sourceLabel = (a) => a.source === 'published' ? '后台上架' : '内置';
+        publishedAgentMap.clear();
+        for (const a of data.agents) {
+          if (a.source === 'published' && a.slug) publishedAgentMap.set(a.slug, a);
+          const tr = document.createElement('tr');
+          const pageHref = /^https?:\/\//i.test(a.url) ? a.url : `${base}/${a.url}`;
+          const pageText = a.external ? '外链' : a.url;
+          const actionBtns = a.source === 'published'
+            ? `<div class="btn-group">
+                <button class="btn-sm outline" type="button" data-edit="${a.slug}">修改</button>
+                <button class="btn-sm danger" type="button" data-del="${a.slug}" data-name="${a.name.replace(/"/g, '&quot;')}">删除</button>
+              </div>`
+            : '<span style="color:var(--sub);font-size:12px;">—</span>';
+          tr.innerHTML = `
+            <td>${a.icon || '🤖'} ${a.name}</td>
+            <td>${a.tag || '—'}</td>
+            <td>${a.supportsFileUpload ? '是' : '否'}</td>
+            <td><span class="tag ${a.status === 'beta' ? 'admin' : 'active'}">${a.status === 'beta' ? '内测' : '上线'}</span></td>
+            <td><span class="tag ${a.source === 'published' ? 'user' : 'admin'}">${sourceLabel(a)}</span></td>
+            <td><a class="link-btn" href="${pageHref}" target="_blank" rel="noopener">${pageText}</a></td>
+            <td>${fmtTime(a)}</td>
+            <td>${actionBtns}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+        tbody.querySelectorAll('button[data-edit]').forEach(btn => {
+          btn.onclick = () => {
+            const agent = publishedAgentMap.get(btn.dataset.edit);
+            if (!agent) { alert('智能体数据加载失败，请刷新页面'); return; }
+            showEditModal(agent);
+          };
+        });
+        tbody.querySelectorAll('button[data-del]').forEach(btn => {
+          btn.onclick = async () => {
+            const slug = btn.dataset.del;
+            const name = btn.dataset.name;
+            if (!confirm(`确定删除「${name}」？\n将移除首页展示并删除对应 HTML 页面，此操作不可恢复。`)) return;
+            btn.disabled = true;
+            try {
+              const res = await adminApi(`/agents/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || '删除失败');
+              await loadPublishedAgents();
+            } catch (e) {
+              alert(e.message || '删除失败');
+              btn.disabled = false;
+            }
+          };
+        });
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="8" style="color:#c0392b;">智能体列表加载失败，请刷新页面重试</td></tr>';
+      }
+    }
+
+    async function loadDashboard() {
+      const [statsRes, usersRes] = await Promise.all([
+        adminApi('/stats'),
+        adminApi('/users'),
+      ]);
+      if (!statsRes.ok || !usersRes.ok) throw new Error('加载失败，请重新登录');
+      const statsData = await statsRes.json();
+      const usersData = await usersRes.json();
+      const s = statsData.stats;
+      document.getElementById('stats').innerHTML = `
+        <div class="stat"><div class="n">${s.totalUsers}</div><div class="l">注册用户（CloudBase）</div></div>
+        <div class="stat"><div class="n">${s.activeUsers}</div><div class="l">活跃用户</div></div>
+        <div class="stat"><div class="n">${s.totalChats}</div><div class="l">累计对话记录</div></div>
+        <div class="stat"><div class="n">${s.todayChats}</div><div class="l">今日对话</div></div>
+      `;
+      await loadPublishedAgents();
+      const fmtTime = (t) => t ? String(t).replace('T', ' ').slice(0, 19) : '—';
+      const tbody = document.getElementById('userRows');
+      tbody.innerHTML = '';
+      for (const u of usersData.users) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.phone || '—'}</td>
+          <td>${u.nickName || '—'}</td>
+          <td>${u.usedQuota ?? 0} / ${u.totalQuota ?? 10}</td>
+          <td><span class="tag ${u.status}">${u.status === 'active' ? '正常' : '已禁用'}</span></td>
+          <td>${fmtTime(u.createTime)}</td>
+          <td>${fmtTime(u.lastLogin)}</td>
+          <td><button class="btn-sm ${u.status === 'active' ? 'gray' : ''}" data-id="${u.id}" data-status="${u.status === 'active' ? 'disabled' : 'active'}">${u.status === 'active' ? '禁用' : '启用'}</button></td>
+        `;
+        tbody.appendChild(tr);
+      }
+      tbody.querySelectorAll('button[data-id]').forEach(btn => {
+        btn.onclick = async () => {
+          const id = btn.dataset.id;
+          const status = btn.dataset.status;
+          const res = await adminApi(`/users/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status }),
+          });
+          const data = await res.json();
+          if (!res.ok) { alert(data.error || '操作失败'); return; }
+          loadDashboard();
+        };
+      });
+    }
+
+    function showPublishModal() {
+      resetPublishForm();
+      document.getElementById('publishMsg').textContent = '';
+      document.getElementById('publishMsg').className = 'form-msg';
+      document.getElementById('publishOverlay').classList.add('open');
+      document.getElementById('publishOverlay').setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      document.querySelector('.modal-body')?.scrollTo(0, 0);
+    }
+
+    function showEditModal(agent) {
+      resetPublishForm();
+      fillPublishForm(agent);
+      document.getElementById('publishMsg').textContent = '';
+      document.getElementById('publishMsg').className = 'form-msg';
+      document.getElementById('publishOverlay').classList.add('open');
+      document.getElementById('publishOverlay').setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      document.querySelector('.modal-body')?.scrollTo(0, 0);
+    }
+
+    function hidePublishModal() {
+      document.getElementById('publishOverlay').classList.remove('open');
+      document.getElementById('publishOverlay').setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    async function submitPublishForm() {
+      const msgEl = document.getElementById('publishMsg');
+      const editSlug = document.getElementById('pubEditSlug').value.trim();
+      const isEdit = !!editSlug;
+      msgEl.textContent = isEdit ? '正在保存…' : '正在生成页面…';
+      msgEl.className = 'form-msg';
+      const payload = collectPublishPayload();
+      try {
+        const res = await adminApi(
+          isEdit ? `/agents/${encodeURIComponent(editSlug)}` : '/agents/publish',
+          {
+            method: isEdit ? 'PATCH' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || (isEdit ? '保存失败' : '上架失败'));
+        msgEl.textContent = isEdit
+          ? `保存成功：${data.agent?.name}`
+          : `上架成功：${data.agent?.name}（${data.url}）`;
+        msgEl.className = 'form-msg ok';
+        if (!isEdit) resetPublishForm();
+        await loadPublishedAgents();
+        setTimeout(hidePublishModal, 1200);
+      } catch (e) {
+        msgEl.textContent = e.message || (isEdit ? '保存失败' : '上架失败');
+        msgEl.className = 'form-msg err';
+      }
+    }
+
+    document.getElementById('openPublishBtn').onclick = showPublishModal;
+    document.getElementById('closePublishBtn').onclick = hidePublishModal;
+    document.getElementById('cancelPublishBtn').onclick = hidePublishModal;
+    document.getElementById('confirmPublishBtn').onclick = submitPublishForm;
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && document.getElementById('publishOverlay').classList.contains('open')) {
+        hidePublishModal();
+      }
+    });
+    document.getElementById('publishOverlay').addEventListener('click', e => {
+      if (e.target.id === 'publishOverlay') hidePublishModal();
+    });
+
+    function showApp(user) {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('adminName').textContent = user.username;
+      loadDashboard().catch(e => alert(e.message));
+    }
+
+    document.getElementById('adminLoginBtn').onclick = async () => {
+      document.getElementById('loginErr').textContent = '';
+      try {
+        const user = await GoalinAuth.login(
+          document.getElementById('adminUser').value.trim(),
+          document.getElementById('adminPass').value,
+        );
+        if (user.role !== 'admin') {
+          GoalinAuth.logout();
+          throw new Error('该账号不是管理员');
+        }
+        showApp(user);
+      } catch (e) {
+        document.getElementById('loginErr').textContent = e.message || '登录失败';
+      }
+    };
+
+    document.getElementById('logoutBtn').onclick = () => {
+      GoalinAuth.logout();
+      location.reload();
+    };
+
+    requireAdmin().then(u => { if (u) showApp(u); });
+  </script>
+</body>
+</html>

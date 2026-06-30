@@ -1,0 +1,23 @@
+{
+  "name": "goalin-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "高领智能体中心 — 本地 Demo 统一前端",
+  "scripts": {
+    "start": "node dev-server.mjs",
+    "dev": "node dev-server.mjs",
+    "setup": "npm install"
+  },
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.18.1",
+    "bcryptjs": "^3.0.3",
+    "docx": "^8.5.0",
+    "iconv-lite": "^0.6.3",
+    "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.9.0",
+    "mysql2": "^3.22.5",
+    "pdf-parse": "^1.1.1",
+    "word-extractor": "^1.0.4",
+    "xlsx": "^0.18.5"
+  }
+}
