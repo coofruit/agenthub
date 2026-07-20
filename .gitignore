@@ -1,6 +1,12 @@
 node_modules/
-scripts/
-.env
+logs/
 *.log
+.env
+.env.local
+.env.production
+.next/
+dist/
+build/
 .DS_Store
-Thumbs.db
+.idea/
+.vscode/

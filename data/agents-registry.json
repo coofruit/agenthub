@@ -1,5 +1,5 @@
 {
-  "nextId": 107,
+  "nextId": 109,
   "agents": [
     {
       "id": 104,
@@ -78,6 +78,59 @@
       "apiKey": "d8ud6a54shh6of5k9bi0",
       "apiKeyHint": "d8ud****",
       "publishedAt": "2026-06-25T08:09:26.768Z",
+      "source": "published"
+    },
+    {
+      "id": 107,
+      "slug": "agent-h4iqma2fc0",
+      "name": "劳动关系解除合规咨询",
+      "icon": "🤖",
+      "tag": "助手",
+      "status": "beta",
+      "subtitle": "劳动合规",
+      "url": "agent-h4iqma2fc0.html",
+      "desc": "劳动关系解除合规咨询 — 由高领智能体中心提供的智能法律助手",
+      "features": [
+        "劳动合同风险审查",
+        "工伤认定与赔偿分析",
+        "劳动争议处理策略"
+      ],
+      "supportsFileUpload": false,
+      "welcomeTitle": "您好，我是劳动关系解除合规咨询助手",
+      "welcomeDesc": "劳动关系解除智能体 — 由高领智能体中心提供的智能法律助手",
+      "inputPlaceholder": "向劳动关系解除智能体提问…",
+      "suggestions": [],
+      "appId": "d9a5jpl4shh4iqma2fc0",
+      "apiKey": "d9auh4t4shh6of5lmig0",
+      "apiKeyHint": "d9au****",
+      "publishedAt": "2026-07-14T08:10:11.421Z",
+      "source": "published",
+      "updatedAt": "2026-07-14T08:32:22.169Z"
+    },
+    {
+      "id": 108,
+      "slug": "agent-h4780a7220",
+      "name": "侵犯商业秘密罪咨询助手",
+      "icon": "🤖",
+      "tag": "助手",
+      "status": "online",
+      "subtitle": "企业商业秘密保护助手",
+      "url": "agent-h4780a7220.html",
+      "desc": "侵犯商业秘密罪咨询助手 — 由高领智能体中心提供的智能法律助手",
+      "features": [
+        "智能法律问答",
+        "专业分析建议",
+        "处理思路梳理"
+      ],
+      "supportsFileUpload": false,
+      "welcomeTitle": "您好，我是侵犯商业秘密罪咨询助手助手",
+      "welcomeDesc": "侵犯商业秘密罪咨询助手 — 由高领智能体中心提供的智能法律助手",
+      "inputPlaceholder": "向侵犯商业秘密罪咨询助手提问…",
+      "suggestions": [],
+      "appId": "d9c580l4shh4780a7220",
+      "apiKey": "d9c58n54shh3m8of7m7g",
+      "apiKeyHint": "d9c5****",
+      "publishedAt": "2026-07-16T03:49:35.727Z",
       "source": "published"
     }
   ]
